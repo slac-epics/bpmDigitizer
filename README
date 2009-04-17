@@ -1,0 +1,119 @@
+EPICS Waveform Support for the 120MSPS 'Bill Ross' VME Digitizer.
+=================================================================
+
+Setup and configuration of the software is described in
+the startup script 'st.cmd'. This file lists the relevant PVs
+and their semantics. The '<digi>' prefix is assigned by the
+'dbLoadRecords()' command (see startup script).
+
+
+An EDM panel displaying all these PVs is available and can be
+started with the command:
+
+  edm -x -m "digi=<digi>" vmeDigiApp.edl
+
+(Use the same name for '<digi>' as in the 'dbLoadRecords()' command
+above.)
+
+PV Name:          Type:       Description:
+------------------------------------------
+
+<digi>:ARM        enum/menu   Controls the digitizer trigger mode.
+                              The following values can be written:
+
+							  'Disarm'  (numerical: 0):
+							        Digitizer disarmed, not responding to
+									triggers.
+
+		                      'Arm-Once' (numerical: 1):
+							        Digitizer armed. Data will be acquired
+									when the next external trigger occurs.
+									After the acquisition the software
+									switches into 'Disarm' state holding
+									the acquired data.
+
+							  'Arm-Auto' (numerical: 2):
+							        Digitizer armed. Data will be acquired
+									when the next external trigger occurs.
+									After the acquisition the digitizer is
+									automatically rearmed for the next
+									acquisition (and therefore data of the
+									first one may be overwritten).
+
+							  'SW-Trig'  (numerical: 3):
+							        Start an acquisition immediately. 
+									After the acquisition the software
+									switches into 'Disarm' state holding
+									the acquired data.
+
+<digi>:CLK        enum/menu   Selects the digitizer clock source.
+                              The following values can be written:
+
+							    'Internal' (numerical: 0):
+							        Use internal 120MHz clock.
+
+							    'External' (numerical: 1):
+							        Use external clock.
+
+<digi>:WAV        waveform    Array of sampled data in row-major layout
+                  of shorts.  (channel0-sample0, channel0-sample1, ...,
+							   channel1-sample0, channel1-sample1, ...)
+
+							  The number of samples cannot be changed
+							  dynamically but is defined in the startup
+							  script.
+
+							  NOTE: The channel-access client (e.g., EDM)
+							  may request that the IOC convert the data
+							  to 'double' -- the EPICS_CA_MAX_ARRAY_BYTES
+							  environment variable must be set big enough
+							  on both, the IOC and the client!
+
+<digi>:WAV.NELM   integer     Number of samples (total, i.e., a multiple
+                              of 4, the number of channels).
+
+<digi>:WAV.NORD   integer     Number of samples acquired. Reset to 0 when
+                              the digitizer is armed (and after boot) and
+							  set to NELM after an acquisition.
+
+<digi>:S_N        integer     Serial Number of the board.
+
+<digi>:REV        integer     Firmware Revision of the board.
+
+<digi>:DWG        integer     Hardware/Board revision.
+
+<digi>:SLOT       integer     VME slot the board is sitting in 
+                              (1-based, i.e., the leftmost slot in
+							  the crate is slot 1).
+
+<digi>:SLOT       integer     VME slot the board is sitting in 
+
+<digi>:PGA        enum/menu   Selects ADC input range 
+							    '2.25Vpp' (numerical: 0)
+							    '1.5Vpp'  (numerical: 1)
+
+<digi>:ASTA       integer     Reads acquisition status register.
+                              PV updates after each completed
+							  acquisition or change of the waveform.
+							  Can enforce updating by scanning
+							  (e.g., writing .PROC).
+
+							  NOTE: Arming the digitizer (including
+							        the 'auto-rearm' feature) resets
+							        ASTA.
+
+<digi>:ISTA       integer     LATCHED contents of IRQ status
+                              register. After every IRQ the ISR merges
+							  (ORs) the currently set bits from IRQ status
+							  into ISTA (ISR clears pending IRQs from 
+							  status reg).
+
+<digi>:ISTARST    integer     write 0 to clear ISTA.
+
+<digi>:ISTAHW     integer     contents of the IRQ status register;
+                              PV updates every second.
+							  NOTE: this PV probably always reads 0
+							        because the ISR clears pending
+									interrupts. Can provide info
+									if, for some reason the ISR doesn't
+									execute.

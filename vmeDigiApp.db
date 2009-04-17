@@ -1,0 +1,137 @@
+record(waveform, "$(digi):WAV")
+{
+	field(DESC, "Raw VMEDIGI Data")
+	field(DTYP, "VMEDigi-Waveform")
+	field(INP, "#C$(card)S0@")
+# NELM must be a multiple of 4 (# of digitizer channels)
+	field(NELM, "$(nelm)")
+	field(FTVL, "SHORT")
+	field(EGU, "Counts")
+	field(HOPR, "32768")
+	field(LOPR, "-32767")
+	field(SCAN, "Passive")
+	field(FLNK, "$(digi):ASTA")
+}
+
+record(bo, "$(digi):PGA")
+{
+	field(DESC, "VMEDIGI Range Ctl.")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S0@vmeDigi$(card)+0x7fb1a,be16")
+	field(MASK, "0x8000")
+	field(ZNAM, "2.25Vpp")
+	field(ONAM, "1.5Vpp")
+	field(VAL,  "1")
+	field(PINI, "YES")
+}
+
+record(bo, "$(digi):CLK")
+{
+	field(DESC, "VMEDIGI Clock Src")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S0@vmeDigi$(card)+0x7fb1a,be16")
+	field(MASK, "0x400")
+	field(ZNAM, "Internal")
+	field(ONAM, "External")
+	field(VAL,  "1")
+	field(PINI, "YES")
+}
+
+record(longin, "$(digi):ASTA")
+{
+	field(DESC, "VMEDIGI Acq. Stat.")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S0@vmeDigi$(card)+0x7fa3a,be16")
+	field(PINI, "YES")
+	field(FLNK, "$(digi):ISTA")
+}
+
+
+record(longin, "$(digi):ISTA")
+{
+	field(DESC, "VMEDIGI Irq. Stat.")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S0@vmeDigi$(card)-ista,m16")
+	field(PINI, "YES")
+	field(FLNK, "$(digi):ISTAHW")
+}
+
+record(longout, "$(digi):ISTARST")
+{
+	field(DESC, "VMEDIGI Rst IRQStat")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S0@vmeDigi$(card)-ista,m16")
+	field(VAL,  "0")
+	field(PINI, "YES")
+	field(FLNK, "$(digi):ISTA")
+}
+
+record(longin, "$(digi):ISTAHW")
+{
+	field(DESC, "VMEDIGI Acq. Stat.")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S0@vmeDigi$(card)+0x7fa32,be16")
+	field(PINI, "YES")
+	field(SCAN, "1 second")
+}
+
+
+record(mbbo, "$(digi):ARM")
+{
+	field(DESC, "VMEDIGI Arm Ctl")
+	field(DTYP, "Raw Soft Channel")
+	field(OUT,  "$(digi):WAV.RARM PP")
+	field(ZRST, "Disarmed")
+	field(ZRVL, "0")
+	field(ONST, "Arm-Once")
+	field(ONVL, "1")
+	field(TWST, "Arm-Auto")
+	field(TWVL, "2")
+	field(THST, "SW-Trig")
+	field(THVL, "-1")
+}
+
+record(longin, "$(digi):S_N")
+{
+	field(DESC, "VMEDIGI Serial Number")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S0@vmeDigi$(card)+0,rdSN")
+	field(PINI, "YES")
+}
+
+record(longin, "$(digi):REV")
+{
+	field(DESC, "VMEDIGI FW Rev.")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S0@vmeDigi$(card)+0x43,rdCR32")
+	field(PINI, "YES")
+}
+
+record(longin, "$(digi):DWG")
+{
+	field(DESC, "VMEDIGI HW Rev.")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S0@vmeDigi$(card)+0x33,rdCR32")
+	field(PINI, "YES")
+}
+
+record(longin, "$(digi):SLOT")
+{
+	field(DESC, "VMEDIGI VME Slot (1-based)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S0@vmeDigi$(card)+0,rdSlot")
+	field(PINI, "YES")
+}
+
+# Propagate disarmed state (after single-shot acquisition
+# the waveform goes into 'Disarmed' by itself)
+# back to the 'ARM' record.
+record(calcout, "$(digi):PROP")
+{
+	field(DESC, "VMEDIGI ARM Propagator")
+	field(DTYP, "Soft Channel")
+	field(OUT,  "$(digi):ARM PP")
+	field(INPA, "$(digi):WAV.RARM CP")
+	field(CALC, "A")
+	field(OOPT, "Transition To Zero")
+}
