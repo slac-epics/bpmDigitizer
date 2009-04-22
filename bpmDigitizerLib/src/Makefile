@@ -1,4 +1,4 @@
-TOP=..
+TOP=../..
 
 include $(TOP)/configure/CONFIG
 
@@ -18,7 +18,7 @@ PROD_IOC_RTEMS     += vmeDigiComm
 PROD_IOC_RTEMS     += vmeDigiApp
 PROD_IOC_RTEMS     += vmeDigiDevSupMod
 # create a fake library containing dependecies of vmeDigiDevSupMod
-LIB_INSTALLS_RTEMS += libvmeDigiDevSupMod-symdeps.a
+#LIB_INSTALLS_RTEMS += libvmeDigiDevSupMod-symdeps.a
 
 LIBRARY_IOC_RTEMS  += vmeDigi
 LIBRARY_IOC_RTEMS  += vmeDigiDevSup

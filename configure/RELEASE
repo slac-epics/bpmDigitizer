@@ -37,3 +37,4 @@ include $(EPICS_SITE_CONFIG)
 # example: IPAC=$(EPICS_MODULES)/ipac/$(IPAC_MODULE_VERSION)
 # NOTE: it is normal for IPAC_MODULE_VERSION not to be defined, it will
 # be inserted by the release script.
+DEVBUSMAPPED=$(EPICS_MODULES)/devBusMapped
