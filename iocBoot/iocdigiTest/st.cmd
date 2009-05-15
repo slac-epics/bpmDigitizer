@@ -1,8 +1,7 @@
-# $Id: st.cmd,v 1.2 2008/11/25 01:39:43 strauman Exp $
 # Startup Script for Bill Ross' 120MSPS VME Digitizer Test Driver
 # (simple EPICS waveform)
-#
-chdir("../../")
+
+#< envPaths
 
 # Make sure we can transfer arrays > 16k.
 # Must be > max # elements * 8 since data
@@ -12,6 +11,7 @@ setenv("EPICS_CA_MAX_ARRAY_BYTES","2000000",1)
 
 # load binary
 ld("bin/RTEMS-beatnik/vmeDigiApp.obj")
+#ld("bin/RTEMS-beatnik/digiTest.obj")
 
 # Configure VME digitizers
 #
@@ -51,6 +51,7 @@ devVmeDigiConfig(0,0,0x20000000,0x40,3)
 # Load EPICS database definition
 dbLoadDatabase("dbd/vmeDigiApp.dbd")
 vmeDigiApp_registerRecordDeviceDriver(pdbbase)
+#digiTest_registerRecordDeviceDriver(pdbbase) 
 
 # Load EPICS records. This command is to be repeated
 # for all cards. This associates a name (the value of
