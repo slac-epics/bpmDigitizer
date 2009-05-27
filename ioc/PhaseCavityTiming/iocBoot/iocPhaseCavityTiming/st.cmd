@@ -129,6 +129,16 @@ ip231Create( "ao0", 0, 3, "transparent" )
 #       or 1        = PMC
 ErConfigure( 0, 0, 0, 0, 1 )
 
+# Initialize Beckhoff Coupler
+# Bx9000_Coupler_Add( UINT8 * cplrname, UINT8 * ipaddr, UINT8 * init_string)
+Bx9000_Coupler_Add( "beck-01", "172.21.10.70", 0 )
+
+# Add terminals to the coupler
+# Bx9000_Terminal_Add( UINT8 * cplrname, UINT16 slot, UINT8 * btname, UINT8 * init_string)
+Bx9000_Terminal_Add("beck-01", 1, "KL3314", 0)
+Bx9000_Terminal_Add("beck-01", 2, "KL3314", 0)
+Bx9000_Terminal_Add("beck-01", 3, "KL9010", 0)
+
 # Load EPICS database definition
 dbLoadDatabase("dbd/PhaseCavityTiming.dbd",0,0)
 
@@ -143,6 +153,8 @@ dbLoadRecords( "db/ip445.db", "CARD=do0" )
 dbLoadRecords( "db/rfCavity.db" )
 dbLoadRecords( "db/vmeDigiApp.db", "digi=dig1,card=1,nelm=4096" )
 dbLoadRecords( "db/phaseCavityevr.db", "LLL=UND,RRR=R01,NN=01" )
+dbLoadRecords( "db/Bx9000.db" )
+dbLoadRecords( "db/KL3314.db" )
 
 # Print list of loaded binaries (helpful for debugging)
 lsmod()

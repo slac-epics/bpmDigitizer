@@ -23,6 +23,7 @@ PhaseCavityTiming_DBD += Xy2440.dbd
 PhaseCavityTiming_DBD += evrSupport.dbd
 PhaseCavityTiming_DBD += devMrfEr.dbd
 PhaseCavityTiming_DBD += dbRestore.dbd
+PhaseCavityTiming_DBD += Bx9000_MBT.dbd
 
 # <name>_registerRecordDeviceDriver.cpp will be created from <name>.dbd
 PhaseCavityTiming_SRCS += PhaseCavityTiming_registerRecordDeviceDriver.cpp
@@ -43,6 +44,8 @@ PhaseCavityTiming_LIBS += generalTime
 PhaseCavityTiming_LIBS += devMrfEr
 PhaseCavityTiming_LIBS += mrfVme64x
 PhaseCavityTiming_LIBS += restore
+PhaseCavityTiming_LIBS += Bx9000_MBT
+PhaseCavityTiming_LIBS += ModBusTCPClnt
 PhaseCavityTiming_LIBS_RTEMS += devBusMapped
 PhaseCavityTiming_LIBS_RTEMS += vmeDigiDevSup
 PhaseCavityTiming_LIBS_RTEMS += vmeDigi

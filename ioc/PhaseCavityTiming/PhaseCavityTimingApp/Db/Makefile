@@ -20,6 +20,9 @@ DB += evrEventCtrl.template
 DB += evrEventRate.template
 DB += evrWithExtDelays.template
 DB += evrLabels.template
+DB += Bx9000Info.template
+DB += Bx9000InstalledBTs.template
+DB += KL3314.template
 
 # Generate db files from substitutions
 DB += IP231.db
@@ -27,6 +30,8 @@ DB += IP330.db
 DB += ip440.db
 DB += ip445.db
 DB += phaseCavityevr.db
+DB += Bx9000.db
+DB += KL3314.db
 
 #----------------------------------------------------
 # If <anyname>.db template is not named <anyname>*.template add

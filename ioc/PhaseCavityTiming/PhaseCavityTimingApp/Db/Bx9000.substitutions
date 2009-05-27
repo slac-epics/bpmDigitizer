@@ -1,0 +1,42 @@
+#==============================================================================
+#
+# Abs:  Beckhoff Bx9000 Controller
+#
+# Name: Bx9000.substitutions
+#
+# Auth: 22-May-2009, Bruce Hill			(bhill)
+# Rev : dd-mmm-yyyy, Reviewer's Name	(USERNAME)
+#
+#==============================================================================
+#
+
+file Bx9000Info.template
+{
+	pattern
+	{	S,		SS,		DVC,	N,		DI,	COUPLER,		REPROCEVT	}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	188			}
+}
+
+file Bx9000InstalledBTs.template
+{
+	pattern
+	{	S,		SS,		DVC,	N,		DI,	COUPLER,		SLOT	}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	0		}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	1		}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	2		}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	3		}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	4		}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	5		}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	6		}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	7		}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	8		}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	9		}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	10		}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	11		}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	12		}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	13		}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	14		}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	15		}
+	{	ICS,	Test,	Beck,	_BH,	3,	beck-01,	16		}
+}
+
