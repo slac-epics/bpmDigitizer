@@ -57,11 +57,11 @@ $(BUILD_ACCESS_FILES): $(BUILD_DIR) force
 				cp $${template} $@; \
 				break; \
 			fi; \
-			if [ ! -e $@ ]; then \
-				echo "No template found to generate $(notdir $@) (template list is $(call generate_template_list,$@))"; \
-				false; \
-			fi; \
 		done; \
+		if [ ! -e $@ ]; then \
+			echo "No template found to generate $(notdir $@) (template list is $(call generate_template_list,$@))"; \
+			false; \
+		fi; \
 	fi
 
 $(BUILD_PVLIST_FILES): $(BUILD_DIR) force
@@ -74,11 +74,11 @@ $(BUILD_PVLIST_FILES): $(BUILD_DIR) force
 				cp $${template} $@; \
 				break; \
 			fi; \
-			if [ ! -e $@ ]; then \
-				echo "No template found to generate $(notdir $@) (template list is $(call generate_template_list,$@))"; \
-				false; \
-			fi; \
 		done; \
+		if [ ! -e $@ ]; then \
+			echo "No template found to generate $(notdir $@) (template list is $(call generate_template_list,$@))"; \
+			false; \
+		fi; \
 	fi
 
 $(BUILD_BIN_FILES) $(BUILD_LIB_FILES): $(BUILD_DIR) force
