@@ -100,6 +100,11 @@ install: $(BUILD_ENV_FILES) $(BUILD_ACCESS_FILES) $(BUILD_PVLIST_FILES) $(BUILD_
 		echo "INSTALL $$(basename $${file}) (bin)"; \
 		cp $${file} $(INSTALL_ETC_DIR)/$$(basename $${file}); \
 	done
+	@echo "INSTALL init.d scripts"
+	@set -e; if [ ! -d $(INSTALL_ETC_DIR)/init.d ]; then mkdir -p $(INSTALL_ETC_DIR)/init.d; fi
+	@cp epics-gateway $(INSTALL_ETC_DIR)/init.d/
+	@set -e; if [ ! -d $(INSTALL_ETC_DIR)/sysconfig ]; then mkdir -p $(INSTALL_ETC_DIR)/sysconfig; fi
+	@cp epics-gateway.cfg $(INSTALL_ETC_DIR)/sysconfig/
 
 clean:
 	@set -e; if [ -d $(BUILD_DIR) ]; then rm -r $(BUILD_DIR); fi

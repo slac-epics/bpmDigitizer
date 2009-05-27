@@ -51,13 +51,23 @@ if [ -z "${CAS_IPADDR}" ]; then
 	exit 5
 fi
 # Calculate all IPs of the computer on which the gateway is running
-# We use this variable to tell teh gateway to ignore any client
+# We use this variable to tell the gateway to ignore any client
 # relayed by another gateway running on this computer
-OTHER_GATEWAY_IPS=
-for ip in $(/sbin/ifconfig | grep 'inet addr:' | sed -e 's|^.*inet addr:\([^[:space:]]*\).*$|\1|' | grep -v ${CAS_IPADDR}); do
-	OTHER_GATEWAY_IPS="${OTHER_GATEWAY_IPS} ${ip}"
+GATEWAY_IPS=
+for ip in $(/sbin/ifconfig | grep 'inet addr:' | sed -e 's|^.*inet addr:\([^[:space:]]*\).*$|\1|'); do
+	GATEWAY_IPS="${GATEWAY_IPS} ${ip}"
 done
-OTHER_GATEWAY_IPS=${OTHER_GATEWAY_IPS:1}
+GATEWAY_IPS=${GATEWAY_IPS:1}
+
+# This gateway should listen to all clients except the ones on the subnet
+# it is running for. To figure that out we use the broadcast addresses 
+# (Note that won't work on hosts with Bcast set to 255.255.255.255)
+CAC_MASK=
+for bcast in $(/sbin/ifconfig | grep -E 'inet addr:.*Bcast:' | grep -v "inet addr:${CAS_IPADDR}" | sed -e 's|^.*Bcast:\([^[:space:]]*\).*$|\1|'); do
+	CAC_MASK="${CAC_MASK} ${bcast}"
+done
+CAC_MASK=${CAC_MASK:1}
+
 
 case $1 in
 	"start")
@@ -86,7 +96,6 @@ case $1 in
 		# Build the command line
 		PARAMS="-pvlist ${CFG_DIR}/${CAS_SUBNET_NAME}.pvlist"
 		PARAMS="${PARAMS} -access ${CFG_DIR}/${CAS_SUBNET_NAME}.access"
-		PARAMS="${PARAMS} -log ${LOG_FILE}"
 		PARAMS="${PARAMS} -command ${CMD_FILE}"
 		PARAMS="${PARAMS} -home ${HOME_DIR}"
 		PARAMS="${PARAMS} -sip ${CAS_IPADDR}"
@@ -118,9 +127,14 @@ case $1 in
 		if [ -n "${DISABLE_CACHE}" ]; then
 			PARAMS="${PARAMS} -no_cache"
 		fi
-		if [ -n "${OTHER_GATEWAY_IPS}" ]; then
-			PARAMS="${PARAMS} -signore \"${OTHER_GATEWAY_IPS}\""
+		if [ -n "${GATEWAY_IPS}" ]; then
+			export EPICS_CAS_IGNORE_ADDR_LIST="${GATEWAY_IPS}"
 		fi
+		if [ -n "${CAC_MASK}" ]; then
+			export EPICS_CA_ADDR_LIST="${CAC_MASK}"
+			export EPICS_CA_AUTO_ADDR_LIST=NO
+		fi
+		PARAMS="${PARAMS} -log ${LOG_FILE}"
 		PARAMS="${PARAMS} -server"
 		${EPICS_EXTENSIONS}/bin/${EPICS_HOST_ARCH}/gateway ${PARAMS}
 		if [ $? -ne 0 ]; then
@@ -139,6 +153,20 @@ case $1 in
 		fi
 		if [ -e ${CMD_FILE} ]; then
 			rm ${CMD_FILE}
+		fi
+		;;
+	"status")
+		if [ -e ${HOME_DIR}/gateway.killer ]; then
+			PID=$(grep -E '^[[:space:]]*kill[[:space:]]+' ${HOME_DIR}/gateway.killer | sed -e 's|[[:space:]]*kill[[:space:]]\+\([0-9]\+\).*|\1|')
+			if [ $(ps -p ${PID} -o state= | wc -l) -ne 0 ]; then
+				echo "gateway is running with pid ${PID}"
+			else
+				echo "gateway not running"
+				exit 3
+			fi
+		else
+			echo "gateway not running"
+			exit 3
 		fi
 		;;
 	*)
