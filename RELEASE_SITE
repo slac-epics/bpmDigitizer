@@ -84,3 +84,13 @@ RTEMS_VER=rtems-4.7.1
 # =============================================================
 TOOLS_MODULE_VERSION=
 TOOLS=$(EPICS_TOOLS_SITE_TOP)/tools/$(TOOLS_MODULE_VERSION)
+
+# =============================================================
+# Location of the GATEWAY tools
+# =============================================================
+GATEWAY=$(EPICS_SITE_TOP)/services/gateway
+
+# =============================================================
+# Path to a directory where IOCs can write data
+# =============================================================
+EPICSIOC_VAR_DIR=$(EPICS_SITE_TOP)/var
