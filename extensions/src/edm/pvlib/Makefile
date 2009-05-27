@@ -34,18 +34,18 @@ LIB_SRCS += pv.cc
   
 include $(TOP)/configure/RULES
 
-ifneq (,$(strip $(EDMPVOBJECTS)))
-ifneq (,$(strip $(EDMOBJECTS)))
-buildInstall:	installLibEdmBase $(EDMPVOBJECTS)/edmPvObjects
+ifneq (,$(strip $(INSTALL_EDM)))
+buildInstall:	installLibEdmBase $(INSTALL_EDM)/edmPvObjects
 
+#	EDMOBJECTS=$(INSTALL_EDM) $(INSTALL_BIN)/edm$(EXE) -add $(INSTALL_EDM_LIB)/libEdmBase$(SHRLIB_SUFFIX)
+#	EDMOBJECTS=$(INSTALL_EDM) $(INSTALL_BIN)/edm$(EXE) -add $(INSTALL_EDM_LIB)/libEdmBase$(LIB_SUFFIX)
 installLibEdmBase: $(INSTALL_BIN)/edm$(EXE)
 	@echo "Installing edmObjects for libEdmBase"
 ifneq (,$(strip $(SHRLIB_SUFFIX)))
-	$(INSTALL_BIN)/edm$(EXE) -add $(EDMLIBS)/libEdmBase$(SHRLIB_SUFFIX)
+	$(EDM_CMD) -add $(INSTALL_EDM_LIB)/libEdmBase$(SHRLIB_SUFFIX)
 else
-	$(INSTALL_BIN)/edm$(EXE) -add $(EDMLIBS)/libEdmBase$(LIB_SUFFIX)
+	$(EDM_CMD) -add $(INSTALL_EDM_LIB)/libEdmBase$(LIB_SUFFIX)
 endif	# SHRLIBNAME
-	sed -i -e 's^$(EDMLIBS)^$$\(EDMLIBS\)^' $(EDMOBJECTS)/edmObjects
+	sed -i -e 's^$(INSTALL_EDM_LIB)^$$\(EDMLIBS\)^' $(INSTALL_EDM)/edmObjects
 
-endif	# EDMOBJECTS
-endif	# EDMPVOBJECTS
+endif	# INSTALL_EDM

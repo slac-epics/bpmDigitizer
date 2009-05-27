@@ -62,9 +62,9 @@ ifdef EPICS_HOST_ARCH
    
   include $(TOP)/configure/RULES
   
-ifneq (,$(strip $(EDMOBJECTS)))
-buildInstall:	$(EDMOBJECTS)/edmObjects
-endif	# EDMOBJECTS
+ifneq (,$(strip $(INSTALL_EDM)))
+buildInstall:	$(INSTALL_EDM)/edmObjects
+endif	# INSTALL_EDM
 
 else
    ifneq ($(wildcard $(TOP)/config)x,x)

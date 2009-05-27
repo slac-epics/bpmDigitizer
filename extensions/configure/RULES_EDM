@@ -1,32 +1,45 @@
 ifdef T_A
 ifeq ($(findstring Host,$(VALID_BUILDS)),Host)
 
-buildInstall : $(INSTALL_IDLS)
+INSTALL_EDM		:= $(shell readlink -f $(INSTALL_LIB)/../../templates/edm )
+INSTALL_EDM_LIB	:= $(shell readlink -f $(INSTALL_LIB) )
+EDM_CMD			:= EDMOBJECTS=$(INSTALL_EDM) EDMPVOBJECTS=$(INSTALL_EDM) EDMLIBS=$(INSTALL_EDM_LIB) $(INSTALL_BIN)/edm$(EXE)
 
-#	@echo "Installing edmObjects for $(SHRLIBNAME)"
-#	edm -add $(EDMLIBS)/$(SHRLIBNAME)
-#	sed -i -e 's^$(EDMLIBS)^$$\(EDMLIBS\)^' $(EDMOBJECTS)/edmObjects
-ifneq (,$(strip $(EDMLIBS)))
+# buildInstall: dumpEnv
+
+dumpEnv:
+	@echo INSTALL_LIB=$(INSTALL_LIB)
+	@echo INSTALL_EDM=$(INSTALL_EDM)
+	@echo INSTALL_EDM_LIB=$(INSTALL_EDM_LIB)
+	@echo INSTALL_SHRLIB=$(INSTALL_SHRLIB)
+#	@echo EDMLIBS=$(EDMLIBS)
+#	@echo EDMOBJECTS=$(EDMOBJECTS)
+
+ifneq (,$(strip $(INSTALL_EDM_LIB)))
 ifneq (,$(strip $(SHRLIBNAME)))
-$(EDMOBJECTS)/edmObjects: $(EDMLIBS)/$(SHRLIBNAME)
+$(INSTALL_EDM)/edmObjects: $(INSTALL_EDM_LIB)/$(SHRLIBNAME)
 else
-$(EDMOBJECTS)/edmObjects: $(EDMLIBS)/$(LIBNAME)
+$(INSTALL_EDM)/edmObjects: $(INSTALL_EDM_LIB)/$(LIBNAME)
 endif # SHRLIBNAME
 	@echo "Installing edmObjects for $(<F)"
-	edm -add $<
-	sed -i -e 's^$(EDMLIBS)^$$\(EDMLIBS\)^' $(EDMOBJECTS)/edmObjects
-endif # EDMLIBS
+	@echo INSTALL_EDM=$(INSTALL_EDM)
+	@echo EDMOBJECTS=$(EDMOBJECTS)
+	$(EDM_CMD) -add $<
+	sed -i -e 's^$(INSTALL_EDM_LIB)^$$\(EDMLIBS\)^' $(INSTALL_EDM)/edmObjects
+endif # INSTALL_EDM_LIB
+#	EDMOBJECTS=$(INSTALL_EDM) EDMPVOBJECTS=$(INSTALL_EDM) EDMLIBS=$(INSTALL_EDM_LIB) $(INSTALL_BIN)/edm$(EXE) -add $<
 
-ifneq (,$(strip $(EDMLIBS)))
+ifneq (,$(strip $(INSTALL_EDM_LIB)))
 ifneq (,$(strip $(SHRLIBNAME)))
-$(EDMPVOBJECTS)/edmPvObjects: $(EDMLIBS)/$(SHRLIBNAME)
+$(INSTALL_EDM)/edmPvObjects: $(INSTALL_EDM_LIB)/$(SHRLIBNAME)
 else
-$(EDMPVOBJECTS)/edmPvObjects: $(EDMLIBS)/$(LIBNAME)
+$(INSTALL_EDM)/edmPvObjects: $(INSTALL_EDM_LIB)/$(LIBNAME)
 endif # SHRLIBNAME
 	@echo "Installing edmPvObjects for $(<F)"
-	edm -addpv $<
-	sed -i -e 's^$(EDMLIBS)^$$\(EDMLIBS\)^' $(EDMPVOBJECTS)/edmPvObjects
-endif # EDMLIBS
+	$(EDM_CMD) -addpv $<
+	sed -i -e 's^$(INSTALL_EDM_LIB)^$$\(EDMLIBS\)^' $(INSTALL_EDM)/edmPvObjects
+endif # INSTALL_EDM_LIB
+#	EDMOBJECTS=$(INSTALL_EDM) EDMPVOBJECTS=$(INSTALL_EDM) EDMLIBS=$(INSTALL_EDM_LIB) $(INSTALL_BIN)/edm$(EXE) -addpv $<
 
 endif
 endif
