@@ -12,6 +12,8 @@
 # Short-Description: Start and stop the EPICS gateway
 ### END INIT INFO
 # chkconfig: - 99 0
+# description: start EPICS gateway
+# processname: epics-gateway
 
 COMMAND=$1
 
@@ -36,10 +38,10 @@ fi
 RETVAL=0
 
 # Source the EPICS environment
-EPICS_SITE_CONFIG=${EPICSGW_RELEASE_SITE}
+export EPICS_SITE_CONFIG=${EPICSGW_RELEASE_SITE}
 if [ ! -r $(dirname ${EPICS_SITE_CONFIG})/tools/current/bin/iocenv.sh ]; then
 	failure
-	echo -ne "\nCould not find iocenv.sh.\n"
+	echo -ne "\nCould not find $(dirname ${EPICS_SITE_CONFIG})/tools/current/bin/iocenv.sh.\n"
 	exit 1
 fi
 source $(dirname ${EPICS_SITE_CONFIG})/tools/current/bin/iocenv.sh
