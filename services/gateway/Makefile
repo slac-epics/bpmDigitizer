@@ -16,7 +16,7 @@ INSTALL_BIN_DIR=$(INSTALL_LOCATION)/bin
 INSTALL_LIB_DIR=$(INSTALL_LOCATION)/lib
 INSTALL_ETC_DIR=$(INSTALL_LOCATION)/etc
 
-NETWORKS=cds-amo.pcdsn cds-fee.pcdsn cds.pcdsn dev.pcdsn mcc.pcdsn
+NETWORKS=cds-amo.pcdsn cds-fee.pcdsn cds.pcdsn dev.pcdsn mcc-epics.pcdsn
 
 # NETWORK_EXPANDED is a list of networks with all domains above (ex if a.b
 # is in NETWORKS then a.b AND b will be in NETWORKS_EXPANDED
