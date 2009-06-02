@@ -66,7 +66,7 @@ ModBusTCP_Link MBT_Init(char * deviceName, char * deviceIP, unsigned short int p
 	}
 
 	/* Most of structure member will be inited by bzero */
-	memzero( (char *)mbt_link, 0, sizeof(struct ModBusTCP_CB) );
+	memset( (char *)mbt_link, 0, sizeof(struct ModBusTCP_CB) );
 	mbt_link->sFd = INVALID_SOCKET;
 	/* not necessary blow because they are already 0, just for emphasize here */
 	mbt_link->linkStat = LINK_DOWN;

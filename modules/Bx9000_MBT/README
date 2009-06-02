@@ -14,15 +14,43 @@ There are watchdog timers in the Beckhoff. The driver will keep sending echo pac
 Another watchdog timer will cause write failed then output turns to fail safe mode. 
 There are three solutions:
 1. Turn off this watchdog timer.
-2. If you have input modules installed with same couppler, you keep scanning then you are ok.
+2. If you have input modules installed with same coupler, you keep scanning then you are ok.
 3. If you have output modules only, then you have to make one output record scanned @ 10Hz
 !!!!!!!!!!!!!!!!!!!!!!!!!! WARNING WARNING WARNING WARNING WARNING WARNING !!!!!!!!!!!!!!!!!!!!!!!!!
 
-1. Add two lines into your configure/RELEASE
-	MODBUSTCPCLNT = $(SHARE_RELEASE)/ModBusTCPClnt/ReleaseTag
-	BX9000_MBT = $(SHARE_RELEASE)/Bx9000_MBT/ReleaseTag
+1. Add the following lines into your configure/RELEASE
+MODBUSTCPCLNT=$(EPICS_MODULES)/ModBusTCPClnt/$(MODBUSTCPCLNT_MODULE_VERSION)
+BX9000_MBT=$(EPICS_MODULES)/Bx9000_MBT/$(BX9000_MBT_MODULE_VERSION)
 
-2. Here is the example to show you how to use the template:
+2.	Add the following lines to your XXXApp/src/Makefile
+XXX_DBD += Bx9000_MBT.dbd
+XXX_LIBS += Bx9000_MBT
+XXX_LIBS += ModBusTCPClnt
+
+3.	Copy the following files to your XXXApp/Db directory
+Bx9000Info.template
+Bx9000InstalledBTs.template
+Bx9000.substitutions
+# For a KL3314 module (substitute modules as needed)
+KL3314.template
+KL3314.substitutions
+
+4.	Add the following lines to your XXXApp/Db/Makefile
+DB += Bx9000Info.template
+DB += Bx9000InstalledBTs.template
+DB += Bx9000.db
+# For a KL3314 module (substitute modules as needed)
+DB += KL3314.template
+DB += KL3314.db
+
+5. Here is the example to show you how to use the template:
+====== TODO:	===============================================================
+	Clean this up.
+	1.	Each of these examples should be broken out into a substitutions file.
+	2.	Re-examine which values should be parameterized here.
+		Why are details of naming scheme duplicated for each record instance?
+		Why is coupler name hard coded in each line?
+===============================================================================
 	Note: REPROCEVT is the event number that we post when we successfully recover the link to coupler.
 	      And the db for output module has fanout record that will be processed by REPROCEVT and cause
 	      output records to be re-processed. If you set REPROCEVT to 0, then you disable this feature.
@@ -170,7 +198,10 @@ There are three solutions:
  	SIG2=AOUT2,SIG2.UNIT=Volt,SIG2.EGUF=10,SIG2.EGUL=-10,SIG2.HOPR=10,SIG2.LOPR=-10,SIG2.DRVH=10,SIG2.DRVL=-10,SIG2.PINI=NO}
 	}
 
-3. Add couple lines into your st.cmd
+6a. For VxWorks, add the following lines into your st.cmd (see 6b for EPICS)
+	# Disclaimer: This is from prior version of README and is vxWorks specific,
+	# however, I have not tested this on vxWorks.
+
 	# ------------------------------------------------------------------------
 	# ---------  Load ModBusTCPClnt + Bx9000_MBT Library ---------------------
 	# ------------------------------------------------------------------------
@@ -210,13 +241,50 @@ There are three solutions:
 	Bx9000_Terminal_Add("ics-test-bh3", 13, "KL4002", 0)
 	Bx9000_Terminal_Add("ics-test-bh3", 14, "KL3468", 0)
 	Bx9000_Terminal_Add("ics-test-bh3", 15, "KL3408", 0)
+
+	# Be sure to finish with a KL9010!
 	Bx9000_Terminal_Add("ics-test-bh3", 16, "KL9010", 0)
 
 	......
 
 	dbLoadRecords("db/beckhoff-ics-test-ioc1.db")
 
-4. There is no screen built for each terminal in SHARE area,
+6b. For EPICS, add the following lines into your st.cmd (see 6a for VxWorks)
+	Replace "ics-test-bh3" with the name of your coupler
+
+	# Add coupler
+	# Bx9000_Coupler_Add( UINT8 * cplrname, UINT8 * ipaddr, UINT8 * init_string)
+	Bx9000_Coupler_Add("ics-test-bh3","160.91.229.182",0)
+
+	# Add terminals to the coupler
+	# Bx9000_Terminal_Add( UINT8 * cplrname, UINT16 slot, UINT8 * btname, UINT8 * init_string)
+	Bx9000_Terminal_Add("ics-test-bh3", 1, "KL9505", 0)
+	Bx9000_Terminal_Add("ics-test-bh3", 2, "KL3314", 0)
+	Bx9000_Terminal_Add("ics-test-bh3", 3, "KL3312", 0)
+	Bx9000_Terminal_Add("ics-test-bh3", 4, "KL2408", 0)
+	Bx9000_Terminal_Add("ics-test-bh3", 5, "KL1104", 0)
+	Bx9000_Terminal_Add("ics-test-bh3", 6, "KL2622", 0)
+	Bx9000_Terminal_Add("ics-test-bh3", 7, "KL1408", 0)
+	Bx9000_Terminal_Add("ics-test-bh3", 8, "KL3102", 0)
+	Bx9000_Terminal_Add("ics-test-bh3", 9, "KL4132", 0)
+	Bx9000_Terminal_Add("ics-test-bh3", 10, "KL2124", 0)
+	Bx9000_Terminal_Add("ics-test-bh3", 11, "KL1124", 0)
+	Bx9000_Terminal_Add("ics-test-bh3", 12, "KL3064", 0)
+	Bx9000_Terminal_Add("ics-test-bh3", 13, "KL4002", 0)
+	Bx9000_Terminal_Add("ics-test-bh3", 14, "KL3468", 0)
+	Bx9000_Terminal_Add("ics-test-bh3", 15, "KL3408", 0)
+
+	# Be sure to finish with a KL9010!
+	Bx9000_Terminal_Add("ics-test-bh3", 16, "KL9010", 0)
+
+	......
+
+	dbLoadRecords("db/Bx9000.db")
+	dbLoadRecords("db/KL3314.db")
+	dbLoadRecords("db/KL3064.db")
+	...
+
+7. There is no screen built for each terminal in SHARE area,
    you should build your own one according to your application.
    But we do have two screens in SHARE area,
    they show the Bx9000 coupler status and installed bus terminals.

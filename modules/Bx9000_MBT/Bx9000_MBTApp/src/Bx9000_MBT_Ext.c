@@ -79,8 +79,13 @@ int	Bx9000_MBT_Read_Cplr_ID(ModBusTCP_Link mbt_link, char * ID, int size, unsign
 
 /* This function uses MBT function 3 to read image size info from image */
 /* Then verify if the calculated size is correct */
-int	Bx9000_MBT_Verify_Image_Size(ModBusTCP_Link mbt_link, unsigned short int cal_complex_out_bits, unsigned short int cal_complex_in_bits,
-								 unsigned short int cal_digital_out_bits, unsigned short int cal_digital_in_bits, unsigned int toutsec)
+int	Bx9000_MBT_Verify_Image_Size(
+	ModBusTCP_Link mbt_link,
+	unsigned short int cal_complex_out_bits,
+	unsigned short int cal_complex_in_bits,
+	unsigned short int cal_digital_out_bits,
+	unsigned short int cal_digital_in_bits,
+	unsigned int toutsec)
 {
 	int	status;
 	unsigned short int	temp;
@@ -88,16 +93,48 @@ int	Bx9000_MBT_Verify_Image_Size(ModBusTCP_Link mbt_link, unsigned short int cal
 	/* We don't explicitly check link here because MBT_FunctionX does it */
 	/* int MBT_Function3(mbt_link, wRIORoffset, RWordCount, *pRWordData, toutsec); */
 	status = MBT_Function3(mbt_link, COMPLEX_OUT_IMG_BITS_MREG, 1, &temp, toutsec);
-	if(status != 0 || temp != cal_complex_out_bits)		return -1;
+	if(status != 0 || temp != cal_complex_out_bits)
+	{
+		if ( Bx9000_DRV_DEBUG && status == 0 )
+		{
+			printf(	"Bx9000_MBT_Verify_Image_Size: COMPLEX_OUT_IMG_BITS_MREG was 0x%08x, not 0x%08x\n",
+					temp, cal_complex_out_bits );
+		}
+		return -1;
+	}
 
 	status = MBT_Function3(mbt_link, COMPLEX_IN_IMG_BITS_MREG, 1, &temp, toutsec);
-	if(status != 0 || temp != cal_complex_in_bits)		return -1;
+	if(status != 0 || temp != cal_complex_in_bits)
+	{
+		if ( Bx9000_DRV_DEBUG && status == 0 )
+		{
+			printf(	"Bx9000_MBT_Verify_Image_Size: COMPLEX_IN_IMG_BITS_MREG was 0x%08x, not 0x%08x\n",
+					temp, cal_complex_in_bits );
+		}
+		return -1;
+	}
 
 	status = MBT_Function3(mbt_link, DIGITAL_OUT_IMG_BITS_MREG, 1, &temp, toutsec);
-	if(status != 0 || temp != cal_digital_out_bits)		return -1;
+	if(status != 0 || temp != cal_digital_out_bits)
+	{
+		if ( Bx9000_DRV_DEBUG && status == 0 )
+		{
+			printf(	"Bx9000_MBT_Verify_Image_Size: DIGITAL_OUT_IMG_BITS_MREG was 0x%08x, not 0x%08x\n",
+					temp, cal_digital_out_bits );
+		}
+		return -1;
+	}
 
 	status = MBT_Function3(mbt_link, DIGITAL_IN_IMG_BITS_MREG, 1, &temp, toutsec);
-	if(status != 0 || temp != cal_digital_in_bits)		return -1;
+	if(status != 0 || temp != cal_digital_in_bits)
+	{
+		if ( Bx9000_DRV_DEBUG && status == 0 )
+		{
+			printf(	"Bx9000_MBT_Verify_Image_Size: DIGITAL_IN_IMG_BITS_MREG was 0x%08x, not 0x%08x\n",
+					temp, cal_digital_in_bits );
+		}
+		return -1;
+	}
 
 	return 0;
 }
@@ -105,7 +142,11 @@ int	Bx9000_MBT_Verify_Image_Size(ModBusTCP_Link mbt_link, unsigned short int cal
 /* This function uses MBT function 3 to read memory image based register of Bx9000 coupler */
 /* Now it reads only one word, user might use it as template to build function to read more */
 /* Because we read only one register(word), we don't worry about oversize here */
-int Bx9000_MBT_Read_Cplr_MReg(ModBusTCP_Link mbt_link, unsigned short int wRRoffset, unsigned short int *pRWordData, unsigned int toutsec)
+int Bx9000_MBT_Read_Cplr_MReg(
+	ModBusTCP_Link			mbt_link,
+	unsigned short int		wRRoffset,
+	unsigned short int	*	pRWordData,
+	unsigned int			toutsec	)
 {
 	int status;
 
@@ -189,8 +230,15 @@ int Bx9000_MBT_Read_Output_Image(ModBusTCP_Link mbt_link, unsigned short int *pi
 /* pinpimage and poutimage will be always point to the begin of the image */
 /* But if nothing to write, we will use function 4 */
 /* If nothing to read, we will use function 16 */
-int Bx9000_MBT_Sync_Both_Image(ModBusTCP_Link mbt_link, unsigned short int wRIoffset, unsigned short int RWordCount, unsigned short int *pinpimage,
-				unsigned short int wWOoffset, unsigned short int WWordCount, unsigned short int *poutimage,unsigned int toutsec)
+int Bx9000_MBT_Sync_Both_Image(
+	ModBusTCP_Link			mbt_link,
+	unsigned short int		wRIoffset,
+	unsigned short int		RWordCount,
+	unsigned short int	*	pinpimage,
+	unsigned short int		wWOoffset,
+	unsigned short int		WWordCount,
+	unsigned short int	*	poutimage,
+	unsigned int			toutsec	)
 {
 	int status=0;
 	unsigned short int cur_wRIoffset, cur_wWOoffset;
@@ -212,7 +260,8 @@ int Bx9000_MBT_Sync_Both_Image(ModBusTCP_Link mbt_link, unsigned short int wRIof
 		{/* We only have read left */
 			cur_RWordCount = min(remain_RWordCount, MBT_F3_MAX_RWORDCOUNT);
 			/* int MBT_Function3(mbt_link, wRIORoffset, RWordCount, *pRWordData, toutsec); */
-			status = MBT_Function3(mbt_link, cur_wRIoffset+INPUT_IMG_BASE, cur_RWordCount, pinpimage+cur_wRIoffset, toutsec);
+			status = MBT_Function3(mbt_link, cur_wRIoffset+INPUT_IMG_BASE, cur_RWordCount,
+									pinpimage+cur_wRIoffset, toutsec);
 			if(status != 0)
 			{/* something wrong */
 				return -1;
@@ -227,7 +276,8 @@ int Bx9000_MBT_Sync_Both_Image(ModBusTCP_Link mbt_link, unsigned short int wRIof
 		{/*We only have write left */
 			cur_WWordCount = min(remain_WWordCount, MBT_F16_MAX_WWORDCOUNT);
 			/* int MBT_Function16(mbt_link, wWORoffset, WWordCount, *pWWordData, toutsec); */
-			status = MBT_Function16(mbt_link, cur_wWOoffset+OUTPUT_IMG_BASE, cur_WWordCount, poutimage+cur_wWOoffset, toutsec);
+			status = MBT_Function16(mbt_link, cur_wWOoffset+OUTPUT_IMG_BASE, cur_WWordCount,
+									poutimage+cur_wWOoffset, toutsec);
 			if(status != 0)
 			{/* something wrong */
 				return -1;
