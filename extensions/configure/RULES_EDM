@@ -12,8 +12,8 @@ dumpEnv:
 	@echo INSTALL_EDM=$(INSTALL_EDM)
 	@echo INSTALL_EDM_LIB=$(INSTALL_EDM_LIB)
 	@echo INSTALL_SHRLIB=$(INSTALL_SHRLIB)
-#	@echo EDMLIBS=$(EDMLIBS)
-#	@echo EDMOBJECTS=$(EDMOBJECTS)
+	@echo EDMLIBS=$(EDMLIBS)
+	@echo EDMOBJECTS=$(EDMOBJECTS)
 
 ifneq (,$(strip $(INSTALL_EDM_LIB)))
 ifneq (,$(strip $(SHRLIBNAME)))
@@ -22,8 +22,6 @@ else
 $(INSTALL_EDM)/edmObjects: $(INSTALL_EDM_LIB)/$(LIBNAME)
 endif # SHRLIBNAME
 	@echo "Installing edmObjects for $(<F)"
-	@echo INSTALL_EDM=$(INSTALL_EDM)
-	@echo EDMOBJECTS=$(EDMOBJECTS)
 	$(EDM_CMD) -add $<
 	sed -i -e 's^$(INSTALL_EDM_LIB)^$$\(EDMLIBS\)^' $(INSTALL_EDM)/edmObjects
 endif # INSTALL_EDM_LIB
