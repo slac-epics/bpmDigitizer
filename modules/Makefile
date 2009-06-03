@@ -41,6 +41,7 @@ DIRS+=ssi
 DIRS+=plcAdmin
 DIRS+=devBusMapped
 DIRS+=bpmDigitizer
+DIRS+=multicastBLD
 
 all:
 

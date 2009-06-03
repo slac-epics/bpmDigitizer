@@ -5,7 +5,7 @@
 include $(EPICS_SITE_CONFIG)
 
 DIRS=
-#DIRS+=PhaseCavityTiming
+DIRS+=PhaseCavityTiming
 
 all:
 
