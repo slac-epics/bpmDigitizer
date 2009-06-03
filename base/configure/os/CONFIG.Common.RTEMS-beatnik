@@ -3,17 +3,6 @@
 # Author: Till Straumann
 #	  SSRL
 #         strauman@slac.stanford.edu
-#
-# All RTEMS targets use the same Makefile fragment
-#
-
-RTEMS_TARGET_CPU = powerpc
-GNU_TARGET       = powerpc-rtems
-ARCH_DEP_CFLAGS += -DHAVE_MOTLOAD
-
-include $(CONFIG)/os/CONFIG.Common.RTEMS
-#
-# CONFIG.Common.RTEMS-beatnik
 # A migration from Eric Norum's CONFIG.Common.RTEMS-mvme5500
 # Author: Dayle Kotturi
 #         SLAC
@@ -21,9 +10,12 @@ include $(CONFIG)/os/CONFIG.Common.RTEMS
 #
 # All RTEMS targets use the same Makefile fragment
 #
-override EXE=.elf
+
 RTEMS_TARGET_CPU = powerpc
-GNU_TARGET=powerpc-rtems
+GNU_TARGET       = powerpc-rtems
+
+override EXE=.elf
+
 ARCH_DEP_CFLAGS += -DMY_DO_BOOTP=NULL
 ARCH_DEP_CFLAGS += -DHAVE_MOTLOAD
 ARCH_DEP_CFLAGS += -mlongcall
