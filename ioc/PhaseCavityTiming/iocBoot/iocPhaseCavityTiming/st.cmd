@@ -156,6 +156,10 @@ dbLoadRecords( "db/phaseCavityevr.db", "LLL=UND,RRR=R01,NN=01" )
 dbLoadRecords( "db/Bx9000.db" )
 dbLoadRecords( "db/KL3314.db" )
 
+# Load the gdb stub and start it
+ld( "/boot/rtems/rtems-4.7.1-p2/target/ssrlApps/powerpc-rtems/beatnik/bin/rtems-gdb-stub.obj" )
+rtems_gdb_start()
+
 # Print list of loaded binaries (helpful for debugging)
 lsmod()
 

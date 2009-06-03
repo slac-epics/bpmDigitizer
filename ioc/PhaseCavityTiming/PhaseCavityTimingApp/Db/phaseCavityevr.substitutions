@@ -28,8 +28,8 @@ file evrWithExtDelays.template
 file evrLabels.template
 {
 	pattern
-	{	DEV,						FP0L,	FP1L,	FP2L			}
-	{	$(LLL):$(RRR):EVR:$(NN),	"P4H",	"P5",	"<unassigned>"	}
+	{	DEV,						FP0L,			FP1L,			FP2L			}
+	{	$(LLL):$(RRR):EVR:$(NN),	"<unassigned>",	"<unassigned>",	"<unassigned>"	}
 }
 
 #	DEV	Name of EVR - EVR:<loca>:<unit>
