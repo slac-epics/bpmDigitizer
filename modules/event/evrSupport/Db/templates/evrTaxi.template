@@ -1,0 +1,11 @@
+record(bi, "$(DEV):LINK")
+{
+  field(DESC, "$(DEV) Link Status")
+  field(DTYP, "MRF Event Receiver")
+  field(INP,  "#C$(CARD) S0 @")
+  field(PINI, "YES")
+  field(SCAN, "2 second")
+  field(ZSV, "MAJOR")
+  field(ZNAM, "OFF")
+  field(ONAM, "ON")
+}

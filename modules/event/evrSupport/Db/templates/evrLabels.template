@@ -1,0 +1,15 @@
+record(stringout, "$(DEV):FP0L")
+{
+  field(DESC, "$(FP0L)")
+  field(PINI, "YES")
+}
+record(stringout, "$(DEV):FP1L")
+{
+  field(DESC, "$(FP1L)")
+  field(PINI, "YES")
+}
+record(stringout, "$(DEV):FP2L")
+{
+  field(DESC, "$(FP2L)")
+  field(PINI, "YES")
+}
