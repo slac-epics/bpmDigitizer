@@ -1,7 +1,9 @@
 #Makefile at top of application tree
 TOP = .
 include $(TOP)/configure/CONFIG
-DIRS := $(DIRS) $(filter-out $(DIRS), configure)
-DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard *App))
-DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard iocBoot))
+DIRS += configure
+DIRS += eventTestApp
+DIRS += iocBoot
 include $(TOP)/configure/RULES_TOP
+
+realclean: realuninstall
