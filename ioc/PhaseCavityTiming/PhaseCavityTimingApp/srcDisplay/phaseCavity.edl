@@ -3,10 +3,10 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 25
-y 133
-w 682
-h 482
+x 5
+y 49
+w 1000
+h 690
 font "helvetica-medium-r-14.0"
 fontAlign "center"
 ctlFont "helvetica-medium-r-14.0"
@@ -52,8 +52,8 @@ minor 0
 release 0
 x 9
 y 212
-w 663
-h 259
+w 980
+h 468
 lineColor index 5
 fill
 fillColor index 5
@@ -68,8 +68,8 @@ minor 0
 release 0
 x 15
 y 225
-w 651
-h 241
+w 966
+h 443
 lineColor index 14
 fillColor index 0
 endObjectProperties
@@ -80,8 +80,8 @@ beginObjectProperties
 major 4
 minor 1
 release 0
-x 28
-y 440
+x 151
+y 238
 w 175
 h 16
 font "helvetica-bold-r-14.0"
@@ -100,19 +100,20 @@ beginObjectProperties
 major 4
 minor 2
 release 0
-x 216
-y 440
+x 339
+y 238
 w 56
 h 16
 controlPv "$(digi):WAV.NORD"
 font "helvetica-bold-i-14.0"
-fgColor index 18
+fgColor index 19
 fgAlarm
 bgColor index 0
 useDisplayBg
 autoHeight
 limitsFromDb
 nullColor index 0
+smartRefresh
 useHexPrefix
 newPos
 objType "monitors"
@@ -124,8 +125,8 @@ beginObjectProperties
 major 4
 minor 1
 release 0
-x 261
-y 217
+x 62
+y 216
 w 171
 h 16
 font "helvetica-bold-i-14.0"
@@ -138,6 +139,26 @@ value {
 autoSize
 endObjectProperties
 
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 26
+y 451
+w 102
+h 16
+font "helvetica-bold-i-14.0"
+fontAlign "center"
+fgColor index 34
+bgColor index 5
+value {
+  "Phase Cavity 2"
+}
+autoSize
+endObjectProperties
+
 # (X-Y Graph)
 object xyGraphClass
 beginObjectProperties
@@ -145,9 +166,9 @@ major 4
 minor 3
 release 0
 # Geometry
-x 28
-y 245
-w 624
+x 27
+y 257
+w 942
 h 187
 # Appearance
 border
@@ -193,9 +214,9 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 464
+x 508
 y 48
-w 207
+w 222
 h 155
 lineColor index 5
 fill
@@ -209,9 +230,9 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 468
+x 512
 y 60
-w 197
+w 211
 h 137
 lineColor index 14
 fillColor index 0
@@ -223,7 +244,7 @@ beginObjectProperties
 major 4
 minor 1
 release 0
-x 522
+x 566
 y 54
 w 67
 h 14
@@ -242,7 +263,7 @@ beginObjectProperties
 major 4
 minor 1
 release 0
-x 477
+x 521
 y 121
 w 87
 h 16
@@ -262,20 +283,21 @@ beginObjectProperties
 major 4
 minor 2
 release 0
-x 581
+x 625
 y 120
-w 75
+w 85
 h 16
 controlPv "$(digi):ASTA"
 format "hex"
 font "helvetica-bold-i-14.0"
 fontAlign "center"
-fgColor index 18
+fgColor index 19
 bgColor index 5
 useDisplayBg
 autoHeight
 limitsFromDb
 nullColor index 0
+smartRefresh
 useHexPrefix
 newPos
 objType "monitors"
@@ -289,7 +311,7 @@ minor 0
 release 0
 x 9
 y 48
-w 271
+w 287
 h 155
 lineColor index 5
 fill
@@ -305,7 +327,7 @@ minor 0
 release 0
 x 13
 y 61
-w 261
+w 274
 h 137
 lineColor index 14
 fillColor index 0
@@ -356,7 +378,7 @@ beginObjectProperties
 major 4
 minor 1
 release 0
-x 477
+x 521
 y 145
 w 55
 h 16
@@ -376,20 +398,21 @@ beginObjectProperties
 major 4
 minor 2
 release 0
-x 581
+x 625
 y 144
-w 75
+w 85
 h 16
 controlPv "$(digi):ISTA"
 format "hex"
 font "helvetica-bold-i-14.0"
 fontAlign "center"
-fgColor index 18
+fgColor index 19
 bgColor index 5
 useDisplayBg
 autoHeight
 limitsFromDb
 nullColor index 0
+smartRefresh
 useHexPrefix
 newPos
 objType "monitors"
@@ -401,7 +424,7 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 536
+x 580
 y 143
 w 34
 h 16
@@ -425,7 +448,7 @@ beginObjectProperties
 major 4
 minor 1
 release 0
-x 477
+x 521
 y 172
 w 93
 h 16
@@ -445,20 +468,21 @@ beginObjectProperties
 major 4
 minor 2
 release 0
-x 581
+x 625
 y 172
-w 75
+w 82
 h 16
 controlPv "$(digi):ISTAHW"
 format "hex"
 font "helvetica-bold-i-14.0"
 fontAlign "center"
-fgColor index 18
+fgColor index 19
 bgColor index 5
 useDisplayBg
 autoHeight
 limitsFromDb
 nullColor index 0
+smartRefresh
 useHexPrefix
 newPos
 objType "monitors"
@@ -470,8 +494,8 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 172
-y 74
+x 191
+y 75
 w 89
 h 21
 fgColor index 14
@@ -516,9 +540,9 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 286
-y 48
-w 172
+x 305
+y 46
+w 192
 h 155
 lineColor index 5
 fill
@@ -532,9 +556,9 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 291
-y 61
-w 162
+x 310
+y 59
+w 181
 h 137
 lineColor index 14
 fillColor index 0
@@ -546,8 +570,8 @@ beginObjectProperties
 major 4
 minor 1
 release 0
-x 314
-y 54
+x 333
+y 52
 w 112
 h 16
 font "helvetica-bold-i-14.0"
@@ -566,9 +590,9 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 302
-y 75
-w 145
+x 321
+y 73
+w 161
 h 24
 
 beginGroup
@@ -579,9 +603,9 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 356
-y 75
-w 91
+x 381
+y 73
+w 101
 h 24
 fgColor index 26
 bgColor index 6
@@ -598,8 +622,8 @@ beginObjectProperties
 major 4
 minor 1
 release 0
-x 302
-y 79
+x 321
+y 77
 w 50
 h 16
 font "helvetica-bold-r-14.0"
@@ -622,9 +646,9 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 302
-y 105
-w 145
+x 321
+y 103
+w 159
 h 24
 
 beginGroup
@@ -635,9 +659,9 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 356
-y 105
-w 91
+x 380
+y 103
+w 100
 h 24
 fgColor index 26
 bgColor index 6
@@ -654,8 +678,8 @@ beginObjectProperties
 major 4
 minor 1
 release 0
-x 302
-y 109
+x 321
+y 107
 w 40
 h 16
 font "helvetica-bold-r-14.0"
@@ -678,9 +702,9 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 356
-y 136
-w 91
+x 382
+y 135
+w 97
 h 24
 fgColor index 26
 bgColor index 6
@@ -697,8 +721,8 @@ beginObjectProperties
 major 4
 minor 1
 release 0
-x 302
-y 140
+x 321
+y 138
 w 45
 h 16
 font "helvetica-bold-r-14.0"
@@ -717,7 +741,7 @@ beginObjectProperties
 major 4
 minor 1
 release 0
-x 478
+x 522
 y 79
 w 84
 h 16
@@ -737,50 +761,535 @@ beginObjectProperties
 major 4
 minor 2
 release 0
-x 581
+x 625
 y 77
-w 75
+w 86
 h 16
 controlPv "di0:port0:in0"
 format "string"
 font "helvetica-bold-r-14.0"
 fontAlign "center"
-fgColor index 18
+fgColor index 19
 fgAlarm
 bgColor index 0
 useDisplayBg
 autoHeight
 limitsFromDb
 nullColor index 0
+smartRefresh
 useHexPrefix
 newPos
 objType "monitors"
 endObjectProperties
 
-# (Text Control)
-object activeXTextDspClass
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 740
+y 50
+w 249
+h 153
+lineColor index 5
+fill
+fillColor index 5
+lineWidth 0
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 748
+y 61
+w 232
+h 136
+lineColor index 14
+fillColor index 0
+endObjectProperties
+
+# (Button)
+object activeButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 192
+y 101
+w 40
+h 19
+fgColor index 14
+onColor index 43
+offColor index 4
+inconsistentColor index 14
+topShadowColor index 0
+botShadowColor index 14
+controlPv "rfCavity:attenuator_up"
+onLabel "Up"
+offLabel "Up"
+labelType "literal"
+buttonType "push"
+3d
+font "helvetica-medium-r-14.0"
+objType "controls"
+endObjectProperties
+
+# (Button)
+object activeButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 237
+y 100
+w 42
+h 19
+fgColor index 14
+onColor index 43
+offColor index 4
+inconsistentColor index 14
+topShadowColor index 0
+botShadowColor index 14
+controlPv "rfCavity:attenuator_down"
+onLabel "Down"
+offLabel "Down"
+labelType "literal"
+buttonType "push"
+3d
+font "helvetica-medium-r-14.0"
+objType "controls"
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
 beginObjectProperties
 major 4
 minor 2
 release 0
-x 172
-y 104
-w 91
+x 118
+y 103
+w 56
 h 16
 controlPv "rfCavity:attenuator"
-format "decimal"
 font "helvetica-bold-r-14.0"
 fontAlign "center"
-fgColor index 18
-bgColor index 43
+fgColor index 19
+bgColor index 0
 useDisplayBg
-editable
 autoHeight
 limitsFromDb
-fieldLen "2"
 nullColor index 0
-autoSelect
+smartRefresh
+useHexPrefix
 newPos
-objType "controls"
+objType "monitors"
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 808
+y 55
+w 95
+h 16
+font "helvetica-bold-i-14.0"
+fontAlign "center"
+fgColor index 34
+bgColor index 5
+value {
+  "Temperatures"
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 757
+y 72
+w 45
+h 16
+font "helvetica-bold-r-14.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "Temp1"
+}
+autoSize
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 2
+release 0
+x 861
+y 72
+w 110
+h 16
+controlPv "ICS_Test:Beck_BH3KL3314:TEMP1"
+font "helvetica-bold-r-14.0"
+fgColor index 19
+bgColor index 0
+useDisplayBg
+autoHeight
+limitsFromDb
+nullColor index 0
+smartRefresh
+useHexPrefix
+showUnits
+newPos
+objType "monitors"
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 2
+release 0
+x 861
+y 92
+w 110
+h 16
+controlPv "ICS_Test:Beck_BH3KL3314:TEMP2"
+font "helvetica-bold-r-14.0"
+fgColor index 19
+bgColor index 0
+useDisplayBg
+autoHeight
+limitsFromDb
+nullColor index 0
+smartRefresh
+useHexPrefix
+showUnits
+newPos
+objType "monitors"
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 757
+y 92
+w 45
+h 16
+font "helvetica-bold-r-14.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "Temp2"
+}
+autoSize
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 2
+release 0
+x 861
+y 112
+w 110
+h 16
+controlPv "ICS_Test:Beck_BH3KL3314:TEMP3"
+font "helvetica-bold-r-14.0"
+fgColor index 19
+bgColor index 0
+useDisplayBg
+autoHeight
+limitsFromDb
+nullColor index 0
+smartRefresh
+useHexPrefix
+showUnits
+newPos
+objType "monitors"
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 757
+y 112
+w 45
+h 16
+font "helvetica-bold-r-14.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "Temp3"
+}
+autoSize
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 2
+release 0
+x 861
+y 132
+w 110
+h 16
+controlPv "ICS_Test:Beck_BH3KL3314:TEMP4"
+font "helvetica-bold-r-14.0"
+fgColor index 19
+bgColor index 0
+useDisplayBg
+autoHeight
+limitsFromDb
+nullColor index 0
+smartRefresh
+useHexPrefix
+showUnits
+newPos
+objType "monitors"
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 757
+y 132
+w 45
+h 16
+font "helvetica-bold-r-14.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "Temp4"
+}
+autoSize
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 2
+release 0
+x 861
+y 152
+w 110
+h 16
+controlPv "ICS_Test:Beck_BH3KL3314:TEMP5"
+font "helvetica-bold-r-14.0"
+fgColor index 19
+bgColor index 0
+useDisplayBg
+autoHeight
+limitsFromDb
+nullColor index 0
+smartRefresh
+useHexPrefix
+showUnits
+newPos
+objType "monitors"
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 757
+y 152
+w 45
+h 16
+font "helvetica-bold-r-14.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "Temp5"
+}
+autoSize
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 2
+release 0
+x 861
+y 173
+w 110
+h 16
+controlPv "ICS_Test:Beck_BH3KL3314:TEMP6"
+font "helvetica-bold-r-14.0"
+fgColor index 19
+bgColor index 0
+useDisplayBg
+autoHeight
+limitsFromDb
+nullColor index 0
+smartRefresh
+useHexPrefix
+showUnits
+newPos
+objType "monitors"
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 757
+y 173
+w 45
+h 16
+font "helvetica-bold-r-14.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "Temp6"
+}
+autoSize
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 2
+release 0
+x 340
+y 450
+w 56
+h 16
+controlPv "$(digi):WAV.NORD"
+font "helvetica-bold-i-14.0"
+fgColor index 19
+fgAlarm
+bgColor index 0
+useDisplayBg
+autoHeight
+limitsFromDb
+nullColor index 0
+smartRefresh
+useHexPrefix
+newPos
+objType "monitors"
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 148
+y 450
+w 175
+h 16
+font "helvetica-bold-r-14.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "Number of Samples Read"
+}
+autoSize
+endObjectProperties
+
+# (X-Y Graph)
+object xyGraphClass
+beginObjectProperties
+major 4
+minor 3
+release 0
+# Geometry
+x 28
+y 469
+w 942
+h 187
+# Appearance
+border
+plotAreaBorder
+xLabel "Samples"
+fgColor index 14
+bgColor index 6
+gridColor index 14
+font "helvetica-bold-r-12.0"
+# Operating Modes
+nPts 2
+# X axis properties
+showXAxis
+xAxisSrc "fromUser"
+xMin 0
+xMax 4095
+# Y axis properties
+showYAxis
+yAxisSrc "AutoScale"
+yMax 1
+# Y2 axis properties
+y2AxisSrc "AutoScale"
+y2Max 1
+# Trace Properties
+numTraces 1
+yPv {
+  0 "$(digi):WAV"
+}
+opMode {
+  0 "plot"
+}
+ySigned {
+  0 525978256
+}
+plotColor {
+  0 index 21
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 27
+y 238
+w 102
+h 16
+font "helvetica-bold-i-14.0"
+fontAlign "center"
+fgColor index 34
+bgColor index 5
+value {
+  "Phase Cavity 1"
+}
+autoSize
 endObjectProperties
 

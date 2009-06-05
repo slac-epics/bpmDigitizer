@@ -17,7 +17,7 @@ file ip445.template
 {
 	pattern
 	{ RECORDNAME                    , PORT , CH , DESC        			  , ZNAM  , ONAM }
-	{ "$(CARD):port$(PORT):out$(CH)", 0    , 0  , "RF Digitizer Resync"	  , "Off" , "On" }
+#	{ "$(CARD):port$(PORT):out$(CH)", 0    , 0  , "RF Digitizer Resync"	  , "Off" , "On" }
 #	{ "$(CARD):port$(PORT):out$(CH)", 0    , 1  , "RF Attenuator Ctrl 1"  , "Off" , "On" }
 #	{ "$(CARD):port$(PORT):out$(CH)", 0    , 2  , "RF Attenuator Ctrl 2"  , "Off" , "On" }
 #	{ "$(CARD):port$(PORT):out$(CH)", 0    , 3  , "RF Attenuator Ctrl 3"  , "Off" , "On" }

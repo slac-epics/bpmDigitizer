@@ -15,11 +15,68 @@ record(longout, "rfCavity:attenuator")
 	field(FLNK, "rfCavity:attMultibit PP")
 }
 
+record(bo, "rfCavity:attenuator_up")
+{
+	field(FLNK, "rfCavity:attenuator_incr PP")
+}
+
+record(calcout, "rfCavity:attenuator_incr")
+{
+	field(CALC,	"A<15?(A+I):A")
+	field(INPA,	"rfCavity:attenuator NPP")
+	field(INPI,	"rfCavity:attenuator_up")
+	field(OUT,	"rfCavity:attenuator")
+	field(FLNK,	"rfCavity:attenuator PP")
+}
+
+record(bo, "rfCavity:attenuator_down")
+{
+	field(FLNK, "rfCavity:attenuator_decr PP")
+}
+
+record(calcout, "rfCavity:attenuator_decr")
+{
+	field(CALC,	"A>0?A-I:A")
+	field(INPA,	"rfCavity:attenuator NPP")
+	field(INPI,	"rfCavity:attenuator_down")
+	field(OUT,	"rfCavity:attenuator")
+	field(FLNK,	"rfCavity:attenuator PP")
+}
+
 record(mbbiDirect, "rfCavity:attMultibit")
 {
 	field(DESC, "Attenuator multibit breakout")
 	field(INP, "rfCavity:attenuator NPP" )
 	field(FLNK, "rfCavity:attFanout PP")
+}
+
+record(bo, "do0:port0:out0" )
+{
+	field(DESC, "Beam Time Monitor Resync Control")
+	field(DTYP, "ACROMAG-IP445")
+	field(OUT, "@do0 P0 B1")
+	field(ZNAM, "Off")
+	field(ONAM, "On")
+	field(FLNK, "UND:R01:BTM:01:resync PP")
+}
+
+record(bo, "UND:R01:BTM:01:resync" )
+{
+	field(DESC, "Beam Time Monitor Resync Control")
+	field(DOL, "do0:port0:out0 NPP" )
+	field(OMSL, "closed_loop" )
+	field(ZNAM, "Off")
+	field(ONAM, "On")
+	field(FLNK, "UND:R02:IOC:19:do0:port0:out0 PP" )
+}
+
+record(bo, "UND:R02:IOC:19:do0:port0:out0" )
+{
+	field(DESC, "Beam Time Monitor Resync Control")
+	field(DOL, "UND:R01:BTM:01:resync" )
+	field(OMSL, "closed_loop" )
+	field(ZNAM, "Off")
+	field(ONAM, "On")
 }
 
 record(bo, "do0:port0:out1" )
