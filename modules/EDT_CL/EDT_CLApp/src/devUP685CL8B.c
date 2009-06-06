@@ -1,7 +1,8 @@
-/***************************************************************************/
-/* Filename: devPTM6710CL.c                                                */
-/* Description: EPICS device support for JAI PULNiX TM-6710CL camera       */
-/***************************************************************************/
+/******************************************************************************/
+/* Filename: devUP685CL8B.c                                                   */
+/* Description: EPICS device support for UniqVision UP685CL8B camera, 10 bits */
+/* We have to have frame grabber truncate 2 bits to fit bus speed             */
+/******************************************************************************/
 
 #define NO_STRDUP
 #define NO_STRCASECMP
@@ -43,27 +44,27 @@
 
 #include "devCommonCameraLib.h"
 
-int PTM6710CL_DEV_DEBUG = 1;
+int UP685CL8B_DEV_DEBUG = 1;
 
-/* some constants about JAI PULNiX TM-6710CL camera */
+/* some constants about UniqVision UP685CL8B camera */
 
-#define CAMERA_MODEL_NAME "PTM6710CL"
-#define CAMERA_CONT_CONFIG_NAME "ptm6710cl.cfg"		/* Free-Run configuration */
-#define CAMERA_PW_CONFIG_NAME "ptm6710cl_pw.cfg"	/* External trigger with pulse width control mode */
+#define CAMERA_MODEL_NAME "UP685CL8B"
+#define CAMERA_CONT_CONFIG_NAME "up685cl8b.cfg"		/* Free-Run configuration */
+#define CAMERA_PW_CONFIG_NAME "up685cl8b_pw.cfg"	/* External trigger with pulse width control mode */
 
 #if 0	/* We don't hardcode here, since cfg file might use different */
-#define	NUM_OF_COL	640
-#define	NUM_OF_ROW	480
+#define	NUM_OF_COL	690
+#define	NUM_OF_ROW	490
 #endif
 
 /* This is always no change, so we hardcode to save trouble of type of pointer */
 #define	NUM_OF_BITS	8
 
-#define SIZE_OF_PIXEL	0.009	/* millimeter per pixel */
+#define SIZE_OF_PIXEL	0.0099	/* millimeter per pixel */
 
-/* some constants about JAI PULNiX TM-6710CL camera */
+/* some constants about UniqVision UP685CL8B camera */
 
-#define	NUM_OF_FRAMES	600	/* number of frames in circular buffer */
+#define	NUM_OF_FRAMES	60	/* number of frames in circular buffer */
 
 #define IMAGE_TS_EVT_NUM 159	/* upon which event we timestamp image */
 
@@ -79,7 +80,7 @@ typedef struct IMAGE_BUF
 {
     epicsTimeStamp      timeStamp;
 
-    unsigned char	*pImage;	/* PTM6710CL is 8-bit camera */
+    unsigned char	*pImage;	/* UP685CL8B is 10-bit camera, but FG cut to 8 bits */
 
     unsigned char	**ppRow;	/* pointers to each row */
 
@@ -99,9 +100,9 @@ typedef struct IMAGE_BUF
     /* We might add ROI info here when we support HW ROI */
 } IMAGE_BUF;
 
-/* JAI PULNiX TM-6710CL operation data structure defination */
+/* UniqVision UP685CL8B operation data structure defination */
 /* The first fourteen elements must be same cross all types of cameras, same of COMMON_CAMERA */
-typedef struct PTM6710CL_CAMERA
+typedef struct UP685CL8B_CAMERA
 {
     ELLNODE		node;		/* link list node */
 
@@ -124,7 +125,7 @@ typedef struct PTM6710CL_CAMERA
 
     CAMERASTARTFUNC	pCameraStartFunc;
     /* No change above, these elements must be identical cross all cameras */
-    int			cameraMode;     /* reserved for future, could be free run, pulse width or more */
+    int			cameraMode;     /* 0 for free run, 1 for pulse width or trigger mode */
 
     int			saveImage;	/* data path, circular buffer (1) or ping-pong buffer (0) */
 
@@ -146,13 +147,12 @@ typedef struct PTM6710CL_CAMERA
     signed int		historyBufReadOffset;	/* The offset from the latest frame, starts from 0, must be 0 or negative number */
 
     epicsMutexId	mutexLock;	/*  general mutex semaphore */
-} PTM6710CL_CAMERA;
+} UP685CL8B_CAMERA;
 
 static int image8b_centroid_calc(unsigned int * proj_H, int num_col, unsigned int * proj_V, int num_row, double * cen_H, double * cen_V)
 {
-    /* So far for simplicity, we just assume the image pixel is unsigned char */
     int loop;
-    int sum_image=0;
+    unsigned int sum_image=0;	/* About 300K pixels, so 19bits. The 8 bits per pixel, to up to 27 bits */
 
     double sum_H=0.0;
 
@@ -185,7 +185,7 @@ static int image8b_centroid_calc(unsigned int * proj_H, int num_col, unsigned in
     return 0;
 }
 
-static int image8b_process(IMAGE_BUF * pImageBuf, PTM6710CL_CAMERA * pCamera)
+static int image8b_process(IMAGE_BUF * pImageBuf, UP685CL8B_CAMERA * pCamera)
 {
     int loop, subloop;
 
@@ -215,7 +215,7 @@ static int image8b_process(IMAGE_BUF * pImageBuf, PTM6710CL_CAMERA * pCamera)
     pImageBuf->noiseRatio = pCamera->noiseRatio;
 
     /****** remove noise ******/
-        /* for JAI PULNiX TM-6710CL camera, each pixel is one byte, so imageSize equals num of pixels */
+        /* for UniqVision UP685CL8B camera with FG cut, each pixel is one byte */
     for(loop=0; loop < pCamera->imageSize; loop++)
     {
         max_pixel = max(max_pixel, pImageBuf->pImage[loop]);
@@ -263,7 +263,7 @@ static int image8b_process(IMAGE_BUF * pImageBuf, PTM6710CL_CAMERA * pCamera)
     return 0;
 }
 
-static int PTM6710CL_Poll(PTM6710CL_CAMERA * pCamera)
+static int UP685CL8B_Poll(UP685CL8B_CAMERA * pCamera)
 {
     int saveImage;
     unsigned char *pNewFrame;
@@ -299,6 +299,7 @@ static int PTM6710CL_Poll(PTM6710CL_CAMERA * pCamera)
         epicsTimeGetEvent(&(pImageBuf->timeStamp), IMAGE_TS_EVT_NUM);
 
         memcpy((void*)(pImageBuf->pImage), (void*)pNewFrame, pCamera->imageSize);
+        /*swab( (void*)pNewFrame, (void*)(pImageBuf->pImage), pCamera->imageSize );*/
         /* Calculate projiection, FWHM, centroid ... */
         image8b_process(pImageBuf, pCamera);
 
@@ -321,11 +322,11 @@ static int PTM6710CL_Poll(PTM6710CL_CAMERA * pCamera)
     return 0;
 }
 
-static int PTM6710CL_Start(PTM6710CL_CAMERA * pCamera)
+static int UP685CL8B_Start(UP685CL8B_CAMERA * pCamera)
 {
     if(!pCamera)
     {
-        errlogPrintf("PTM6710CL_Start is called with pCamera=NULL!\n");
+        errlogPrintf("UP685CL8B_Start is called with pCamera=NULL!\n");
         return -1;
     }
 
@@ -339,26 +340,26 @@ static int PTM6710CL_Start(PTM6710CL_CAMERA * pCamera)
 
     /* Create thread */
 #ifdef vxWorks
-    taskSpawn(pCamera->pCameraName, CAMERA_THREAD_PRIORITY, VX_FP_TASK, CAMERA_THREAD_STACK, (FUNCPTR)PTM6710CL_Poll, (int)pCamera, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    taskSpawn(pCamera->pCameraName, CAMERA_THREAD_PRIORITY, VX_FP_TASK, CAMERA_THREAD_STACK, (FUNCPTR)UP685CL8B_Poll, (int)pCamera, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 #else
-    epicsThreadMustCreate(pCamera->pCameraName, CAMERA_THREAD_PRIORITY, CAMERA_THREAD_STACK, (EPICSTHREADFUNC)PTM6710CL_Poll, (void *)pCamera);
+    epicsThreadMustCreate(pCamera->pCameraName, CAMERA_THREAD_PRIORITY, CAMERA_THREAD_STACK, (EPICSTHREADFUNC)UP685CL8B_Poll, (void *)pCamera);
 #endif
 
     return 0;
 }
 
-int PTM6710CL_Init(char * name, int unit, int channel, int cameraMode)
+int UP685CL8B_Init(char * name, int unit, int channel, int cameraMode)
 {
     int status, loop, looprow;
 
-    PTM6710CL_CAMERA * pCamera = (PTM6710CL_CAMERA *) callocMustSucceed( 1, sizeof(PTM6710CL_CAMERA), "Allocate memory for PTM6710CL_CAMERA" );
+    UP685CL8B_CAMERA * pCamera = (UP685CL8B_CAMERA *) callocMustSucceed( 1, sizeof(UP685CL8B_CAMERA), "Allocate memory for UP685CL8B_CAMERA" );
     /* no bzero needed */
 
     /* common camera initialization */
     if(cameraMode)
-        status = commonCameraInit(name, unit, channel, CAMERA_MODEL_NAME, CAMERA_PW_CONFIG_NAME, (CAMERASTARTFUNC)PTM6710CL_Start, (CAMERA_ID)pCamera);
+        status = commonCameraInit(name, unit, channel, CAMERA_MODEL_NAME, CAMERA_PW_CONFIG_NAME, (CAMERASTARTFUNC)UP685CL8B_Start, (CAMERA_ID)pCamera);
     else
-        status = commonCameraInit(name, unit, channel, CAMERA_MODEL_NAME, CAMERA_CONT_CONFIG_NAME, (CAMERASTARTFUNC)PTM6710CL_Start, (CAMERA_ID)pCamera);
+        status = commonCameraInit(name, unit, channel, CAMERA_MODEL_NAME, CAMERA_CONT_CONFIG_NAME, (CAMERASTARTFUNC)UP685CL8B_Start, (CAMERA_ID)pCamera);
 
     if(status || pCamera->numOfBits != NUM_OF_BITS)
     {
@@ -401,7 +402,7 @@ int PTM6710CL_Init(char * name, int unit, int channel, int cameraMode)
     pCamera->pingpongFlag = 0;
 
     /* Initialize history buffer */
-    if(PTM6710CL_DEV_DEBUG) printf("calloc %fMB memory\n", NUM_OF_FRAMES * pCamera->imageSize/1.0e6);
+    if(UP685CL8B_DEV_DEBUG) printf("calloc %fMB memory\n", NUM_OF_FRAMES * pCamera->imageSize/1.0e6);
     pCamera->phistoryBlock = (char *)callocMustSucceed(NUM_OF_FRAMES, pCamera->imageSize, "Allocate huge his buf");
     for(loop=0; loop<NUM_OF_FRAMES; loop++)
     {
@@ -462,24 +463,24 @@ typedef struct {
     DEVSUPFUN	get_ioint_info;
     DEVSUPFUN	read_write;
     DEVSUPFUN	special_linconv;
-} PTM6710CL_DEV_SUP_SET;
+} UP685CL8B_DEV_SUP_SET;
 
-PTM6710CL_DEV_SUP_SET devAiEDTCL_PTM6710=   {6, NULL, NULL, init_ai,  NULL, read_ai,  NULL};
-PTM6710CL_DEV_SUP_SET devAoEDTCL_PTM6710=   {6, NULL, NULL, init_ao,  NULL, write_ao,  NULL};
-PTM6710CL_DEV_SUP_SET devBiEDTCL_PTM6710=   {6, NULL, NULL, init_bi,  NULL, read_bi,  NULL};
-PTM6710CL_DEV_SUP_SET devBoEDTCL_PTM6710=   {6, NULL, NULL, init_bo,  NULL, write_bo,  NULL};
-PTM6710CL_DEV_SUP_SET devLiEDTCL_PTM6710=   {6, NULL, NULL, init_li,  NULL, read_li,  NULL};
-PTM6710CL_DEV_SUP_SET devLoEDTCL_PTM6710=   {6, NULL, NULL, init_lo,  NULL, write_lo,  NULL};
-PTM6710CL_DEV_SUP_SET devWfEDTCL_PTM6710=   {6, NULL, NULL, init_wf,  NULL, read_wf,  NULL};
+UP685CL8B_DEV_SUP_SET devAiEDTCL_UP685_8B=   {6, NULL, NULL, init_ai,  NULL, read_ai,  NULL};
+UP685CL8B_DEV_SUP_SET devAoEDTCL_UP685_8B=   {6, NULL, NULL, init_ao,  NULL, write_ao,  NULL};
+UP685CL8B_DEV_SUP_SET devBiEDTCL_UP685_8B=   {6, NULL, NULL, init_bi,  NULL, read_bi,  NULL};
+UP685CL8B_DEV_SUP_SET devBoEDTCL_UP685_8B=   {6, NULL, NULL, init_bo,  NULL, write_bo,  NULL};
+UP685CL8B_DEV_SUP_SET devLiEDTCL_UP685_8B=   {6, NULL, NULL, init_li,  NULL, read_li,  NULL};
+UP685CL8B_DEV_SUP_SET devLoEDTCL_UP685_8B=   {6, NULL, NULL, init_lo,  NULL, write_lo,  NULL};
+UP685CL8B_DEV_SUP_SET devWfEDTCL_UP685_8B=   {6, NULL, NULL, init_wf,  NULL, read_wf,  NULL};
 
 #if	EPICS_VERSION>=3 && EPICS_REVISION>=14
-epicsExportAddress(dset, devAiEDTCL_PTM6710);
-epicsExportAddress(dset, devAoEDTCL_PTM6710);
-epicsExportAddress(dset, devBiEDTCL_PTM6710);
-epicsExportAddress(dset, devBoEDTCL_PTM6710);
-epicsExportAddress(dset, devLiEDTCL_PTM6710);
-epicsExportAddress(dset, devLoEDTCL_PTM6710);
-epicsExportAddress(dset, devWfEDTCL_PTM6710);
+epicsExportAddress(dset, devAiEDTCL_UP685_8B);
+epicsExportAddress(dset, devAoEDTCL_UP685_8B);
+epicsExportAddress(dset, devBiEDTCL_UP685_8B);
+epicsExportAddress(dset, devBoEDTCL_UP685_8B);
+epicsExportAddress(dset, devLiEDTCL_UP685_8B);
+epicsExportAddress(dset, devLoEDTCL_UP685_8B);
+epicsExportAddress(dset, devWfEDTCL_UP685_8B);
 #endif
 
 typedef enum
@@ -501,86 +502,86 @@ typedef enum
 }   E_EPICS_RTYPE;
 
 typedef enum {
-    PTM6710CL_AI_CurFwhmX,
-    PTM6710CL_AI_CurFwhmY,
-    PTM6710CL_AI_CurCtrdX,
-    PTM6710CL_AI_CurCtrdY,
-    PTM6710CL_AI_HisFwhmX,
-    PTM6710CL_AI_HisFwhmY,
-    PTM6710CL_AI_HisCtrdX,
-    PTM6710CL_AI_HisCtrdY,
-    PTM6710CL_AO_NoiseRatio,
-    PTM6710CL_BI_CurDarkImg,
-    PTM6710CL_BI_CurSpltImg,
-    PTM6710CL_BI_HisSpltImg,
-    PTM6710CL_BO_SaveImage,
-    PTM6710CL_LI_NumOfCol,
-    PTM6710CL_LI_NumOfRow,
-    PTM6710CL_LI_NumOfBits,
-    PTM6710CL_LI_FrameRate,
-    PTM6710CL_LO_HisIndex,
-    PTM6710CL_LO_ThresholdP2P,
-    PTM6710CL_WF_CurImage,
-    PTM6710CL_WF_HisImage,
-    PTM6710CL_WF_CurProjX,
-    PTM6710CL_WF_CurProjY,
-    PTM6710CL_WF_HisProjX,
-    PTM6710CL_WF_HisProjY,
-} E_PTM6710CL_FUNC;
+    UP685CL8B_AI_CurFwhmX,
+    UP685CL8B_AI_CurFwhmY,
+    UP685CL8B_AI_CurCtrdX,
+    UP685CL8B_AI_CurCtrdY,
+    UP685CL8B_AI_HisFwhmX,
+    UP685CL8B_AI_HisFwhmY,
+    UP685CL8B_AI_HisCtrdX,
+    UP685CL8B_AI_HisCtrdY,
+    UP685CL8B_AO_NoiseRatio,
+    UP685CL8B_BI_CurDarkImg,
+    UP685CL8B_BI_CurSpltImg,
+    UP685CL8B_BI_HisSpltImg,
+    UP685CL8B_BO_SaveImage,
+    UP685CL8B_LI_NumOfCol,
+    UP685CL8B_LI_NumOfRow,
+    UP685CL8B_LI_NumOfBits,
+    UP685CL8B_LI_FrameRate,
+    UP685CL8B_LO_HisIndex,
+    UP685CL8B_LO_ThresholdP2P,
+    UP685CL8B_WF_CurImage,
+    UP685CL8B_WF_HisImage,
+    UP685CL8B_WF_CurProjX,
+    UP685CL8B_WF_CurProjY,
+    UP685CL8B_WF_HisProjX,
+    UP685CL8B_WF_HisProjY,
+} E_UP685CL8B_FUNC;
 
 static struct PARAM_MAP
 {
         char param[40];
         E_EPICS_RTYPE rtype;;
-        E_PTM6710CL_FUNC funcflag;
+        E_UP685CL8B_FUNC funcflag;
 } param_map[] = {
-    {"CurFwhmX",	EPICS_RTYPE_AI,	PTM6710CL_AI_CurFwhmX},
-    {"CurFwhmY",	EPICS_RTYPE_AI,	PTM6710CL_AI_CurFwhmY},
-    {"CurCtrdX",	EPICS_RTYPE_AI,	PTM6710CL_AI_CurCtrdX},
-    {"CurCtrdY",	EPICS_RTYPE_AI,	PTM6710CL_AI_CurCtrdY},
-    {"HisFwhmX",	EPICS_RTYPE_AI,	PTM6710CL_AI_HisFwhmX},
-    {"HisFwhmY",	EPICS_RTYPE_AI,	PTM6710CL_AI_HisFwhmY},
-    {"HisCtrdX",	EPICS_RTYPE_AI,	PTM6710CL_AI_HisCtrdX},
-    {"HisCtrdY",	EPICS_RTYPE_AI,	PTM6710CL_AI_HisCtrdY},
-    {"NoiseRatio",	EPICS_RTYPE_AO,	PTM6710CL_AO_NoiseRatio},
-    {"CurDarkImg",	EPICS_RTYPE_BI,	PTM6710CL_BI_CurDarkImg},
-    {"CurSpltImg",	EPICS_RTYPE_BI,	PTM6710CL_BI_CurSpltImg},
-    {"HisSpltImg",	EPICS_RTYPE_BI,	PTM6710CL_BI_HisSpltImg},
-    {"SaveImage",	EPICS_RTYPE_BO,	PTM6710CL_BO_SaveImage},
-    {"NumOfCol",	EPICS_RTYPE_LI,	PTM6710CL_LI_NumOfCol},
-    {"NumOfRow",	EPICS_RTYPE_LI,	PTM6710CL_LI_NumOfRow},
-    {"NumOfBits",	EPICS_RTYPE_LI,	PTM6710CL_LI_NumOfBits},
-    {"FrameRate",	EPICS_RTYPE_LI,	PTM6710CL_LI_FrameRate},
-    {"HisIndex",	EPICS_RTYPE_LO,	PTM6710CL_LO_HisIndex},
-    {"ThresholdP2P",	EPICS_RTYPE_LO,	PTM6710CL_LO_ThresholdP2P},
-    {"CurImage",	EPICS_RTYPE_WF,	PTM6710CL_WF_CurImage},
-    {"HisImage",	EPICS_RTYPE_WF,	PTM6710CL_WF_HisImage},
-    {"CurProjX",	EPICS_RTYPE_WF,	PTM6710CL_WF_CurProjX},
-    {"CurProjY",	EPICS_RTYPE_WF,	PTM6710CL_WF_CurProjY},
-    {"HisProjX",	EPICS_RTYPE_WF,	PTM6710CL_WF_HisProjX},
-    {"HisProjY",	EPICS_RTYPE_WF,	PTM6710CL_WF_HisProjY}
+    {"CurFwhmX",	EPICS_RTYPE_AI,	UP685CL8B_AI_CurFwhmX},
+    {"CurFwhmY",	EPICS_RTYPE_AI,	UP685CL8B_AI_CurFwhmY},
+    {"CurCtrdX",	EPICS_RTYPE_AI,	UP685CL8B_AI_CurCtrdX},
+    {"CurCtrdY",	EPICS_RTYPE_AI,	UP685CL8B_AI_CurCtrdY},
+    {"HisFwhmX",	EPICS_RTYPE_AI,	UP685CL8B_AI_HisFwhmX},
+    {"HisFwhmY",	EPICS_RTYPE_AI,	UP685CL8B_AI_HisFwhmY},
+    {"HisCtrdX",	EPICS_RTYPE_AI,	UP685CL8B_AI_HisCtrdX},
+    {"HisCtrdY",	EPICS_RTYPE_AI,	UP685CL8B_AI_HisCtrdY},
+    {"NoiseRatio",	EPICS_RTYPE_AO,	UP685CL8B_AO_NoiseRatio},
+    {"CurDarkImg",	EPICS_RTYPE_BI,	UP685CL8B_BI_CurDarkImg},
+    {"CurSpltImg",	EPICS_RTYPE_BI,	UP685CL8B_BI_CurSpltImg},
+    {"HisSpltImg",	EPICS_RTYPE_BI,	UP685CL8B_BI_HisSpltImg},
+    {"SaveImage",	EPICS_RTYPE_BO,	UP685CL8B_BO_SaveImage},
+    {"NumOfCol",	EPICS_RTYPE_LI,	UP685CL8B_LI_NumOfCol},
+    {"NumOfRow",	EPICS_RTYPE_LI,	UP685CL8B_LI_NumOfRow},
+    {"NumOfBits",	EPICS_RTYPE_LI,	UP685CL8B_LI_NumOfBits},
+    {"FrameRate",	EPICS_RTYPE_LI,	UP685CL8B_LI_FrameRate},
+    {"HisIndex",	EPICS_RTYPE_LO,	UP685CL8B_LO_HisIndex},
+    {"ThresholdP2P",	EPICS_RTYPE_LO,	UP685CL8B_LO_ThresholdP2P},
+    {"CurImage",	EPICS_RTYPE_WF,	UP685CL8B_WF_CurImage},
+    {"HisImage",	EPICS_RTYPE_WF,	UP685CL8B_WF_HisImage},
+    {"CurProjX",	EPICS_RTYPE_WF,	UP685CL8B_WF_CurProjX},
+    {"CurProjY",	EPICS_RTYPE_WF,	UP685CL8B_WF_CurProjY},
+    {"HisProjX",	EPICS_RTYPE_WF,	UP685CL8B_WF_HisProjX},
+    {"HisProjY",	EPICS_RTYPE_WF,	UP685CL8B_WF_HisProjY}
 };
 #define N_PARAM_MAP (sizeof(param_map)/sizeof(struct PARAM_MAP))
 
-typedef struct PTM6710CL_DEVDATA 
+typedef struct UP685CL8B_DEVDATA 
 {
-    PTM6710CL_CAMERA * pCamera;
-    E_PTM6710CL_FUNC   function;
+    UP685CL8B_CAMERA * pCamera;
+    E_UP685CL8B_FUNC   function;
     dbCommon * pRecord;
     void * pArg;
-} PTM6710CL_DEVDATA;
+} UP685CL8B_DEVDATA;
 
 /* This function will be called by all device support */
-/* The memory for PTM6710CL_DEVDATA will be malloced inside */
-static int PTM6710CL_DevData_Init(dbCommon * precord, E_EPICS_RTYPE rtype, char * ioString)
+/* The memory for UP685CL8B_DEVDATA will be malloced inside */
+static int UP685CL8B_DevData_Init(dbCommon * precord, E_EPICS_RTYPE rtype, char * ioString)
 {
-    PTM6710CL_DEVDATA *   pdevdata;
+    UP685CL8B_DEVDATA *   pdevdata;
 
-    PTM6710CL_CAMERA * pCamera;
+    UP685CL8B_CAMERA * pCamera;
 
     char    devname[40];
     char    param[40];
-    E_PTM6710CL_FUNC    funcflag = 0;
+    E_UP685CL8B_FUNC    funcflag = 0;
 
     int     count;
     int     loop;
@@ -601,7 +602,7 @@ static int PTM6710CL_DevData_Init(dbCommon * precord, E_EPICS_RTYPE rtype, char 
         return -1;
     }
 
-    pCamera = (PTM6710CL_CAMERA *)devCameraFindByName(devname, CAMERA_MODEL_NAME);
+    pCamera = (UP685CL8B_CAMERA *)devCameraFindByName(devname, CAMERA_MODEL_NAME);
     if(pCamera == NULL)
     {
         errlogPrintf("Can't find %s camera [%s] for record [%s]!\n", CAMERA_MODEL_NAME, devname, precord->name);
@@ -622,7 +623,7 @@ static int PTM6710CL_DevData_Init(dbCommon * precord, E_EPICS_RTYPE rtype, char 
         return -1;
     }
 
-    pdevdata = (PTM6710CL_DEVDATA *)callocMustSucceed(1, sizeof(PTM6710CL_DEVDATA), "allocate memory for PTM6710CL_DEVDATA");
+    pdevdata = (UP685CL8B_DEVDATA *)callocMustSucceed(1, sizeof(UP685CL8B_DEVDATA), "allocate memory for UP685CL8B_DEVDATA");
 
     pdevdata->pCamera = pCamera;
     pdevdata->function = funcflag;
@@ -640,12 +641,12 @@ static long init_ai( struct aiRecord * pai)
 
     if (pai->inp.type!=INST_IO)
     {
-        recGblRecordError(S_db_badField, (void *)pai, "devAiEDTCL_PTM6710 Init_record, Illegal INP");
+        recGblRecordError(S_db_badField, (void *)pai, "devAiEDTCL_UP685CL8B Init_record, Illegal INP");
         pai->pact=TRUE;
         return (S_db_badField);
     }
 
-    if( PTM6710CL_DevData_Init((dbCommon *)pai, EPICS_RTYPE_AI, pai->inp.value.instio.string) != 0 )
+    if( UP685CL8B_DevData_Init((dbCommon *)pai, EPICS_RTYPE_AI, pai->inp.value.instio.string) != 0 )
     {
         errlogPrintf("Fail to init devdata for record %s!\n", pai->name);
         recGblRecordError(S_db_badField, (void *) pai, "Init devdata Error");
@@ -658,8 +659,8 @@ static long init_ai( struct aiRecord * pai)
 
 static long read_ai(struct aiRecord * pai)
 {
-    PTM6710CL_DEVDATA * pdevdata;
-    PTM6710CL_CAMERA * pCamera;
+    UP685CL8B_DEVDATA * pdevdata;
+    UP685CL8B_CAMERA * pCamera;
 
     IMAGE_BUF * pCurImageBuf;	/* current image buffer, could be ping-pong or circular buffer */
     IMAGE_BUF * pHisImageBuf;	/* history image buffer, must be from circular buffer */
@@ -668,7 +669,7 @@ static long read_ai(struct aiRecord * pai)
 
     if(!(pai->dpvt)) return -1;
 
-    pdevdata = (PTM6710CL_DEVDATA *)(pai->dpvt);
+    pdevdata = (UP685CL8B_DEVDATA *)(pai->dpvt);
     pCamera = pdevdata->pCamera;
 
     if(pCamera->saveImage)
@@ -705,7 +706,7 @@ static long read_ai(struct aiRecord * pai)
 
     switch(pdevdata->function)
     {
-    case PTM6710CL_AI_CurCtrdX:
+    case UP685CL8B_AI_CurCtrdX:
         if(pCurImageBuf)
         {
             epicsMutexLock(pCamera->mutexLock);
@@ -729,7 +730,7 @@ static long read_ai(struct aiRecord * pai)
             recGblSetSevr(pai,READ_ALARM,INVALID_ALARM);
         }
         break;
-    case PTM6710CL_AI_CurCtrdY:
+    case UP685CL8B_AI_CurCtrdY:
         if(pCurImageBuf)
         {
             epicsMutexLock(pCamera->mutexLock);
@@ -753,7 +754,7 @@ static long read_ai(struct aiRecord * pai)
             recGblSetSevr(pai,READ_ALARM,INVALID_ALARM);
         }
         break;
-    case PTM6710CL_AI_HisCtrdX:
+    case UP685CL8B_AI_HisCtrdX:
         if(pHisImageBuf)
         {
             pai->val = pHisImageBuf->centroidX;
@@ -768,7 +769,7 @@ static long read_ai(struct aiRecord * pai)
             recGblSetSevr(pai,READ_ALARM,INVALID_ALARM);
         }
         break;
-    case PTM6710CL_AI_HisCtrdY:
+    case UP685CL8B_AI_HisCtrdY:
         if(pHisImageBuf)
         {
             pai->val = pHisImageBuf->centroidY;
@@ -783,10 +784,10 @@ static long read_ai(struct aiRecord * pai)
             recGblSetSevr(pai,READ_ALARM,INVALID_ALARM);
         }
         break;
-    case PTM6710CL_AI_CurFwhmX:
-    case PTM6710CL_AI_CurFwhmY:
-    case PTM6710CL_AI_HisFwhmX:
-    case PTM6710CL_AI_HisFwhmY:
+    case UP685CL8B_AI_CurFwhmX:
+    case UP685CL8B_AI_CurFwhmY:
+    case UP685CL8B_AI_HisFwhmX:
+    case UP685CL8B_AI_HisFwhmY:
     default:
         return -1;
     }
@@ -797,19 +798,19 @@ static long read_ai(struct aiRecord * pai)
 /********* ao record *****************/
 static long init_ao( struct aoRecord * pao)
 {
-    PTM6710CL_DEVDATA * pdevdata;
-    PTM6710CL_CAMERA * pCamera;
+    UP685CL8B_DEVDATA * pdevdata;
+    UP685CL8B_CAMERA * pCamera;
 
     pao->dpvt = NULL;
 
     if (pao->out.type!=INST_IO)
     {
-        recGblRecordError(S_db_badField, (void *)pao, "devAoEDTCL_PTM6710 Init_record, Illegal OUT");
+        recGblRecordError(S_db_badField, (void *)pao, "devAoEDTCL_UP685CL8B Init_record, Illegal OUT");
         pao->pact=TRUE;
         return (S_db_badField);
     }
 
-    if( PTM6710CL_DevData_Init((dbCommon *)pao, EPICS_RTYPE_AO, pao->out.value.instio.string) != 0 )
+    if( UP685CL8B_DevData_Init((dbCommon *)pao, EPICS_RTYPE_AO, pao->out.value.instio.string) != 0 )
     {
         errlogPrintf("Fail to init devdata for record %s!\n", pao->name);
         recGblRecordError(S_db_badField, (void *) pao, "Init devdata Error");
@@ -817,13 +818,13 @@ static long init_ao( struct aoRecord * pao)
         return (S_db_badField);
     }
 
-    pdevdata = (PTM6710CL_DEVDATA *)(pao->dpvt);
+    pdevdata = (UP685CL8B_DEVDATA *)(pao->dpvt);
     pCamera = pdevdata->pCamera;
 
     switch(pdevdata->function)
     {
 #if 0	/* let record to limit and init it */
-    case PTM6710CL_AO_NoiseRatio:
+    case UP685CL8B_AO_NoiseRatio:
         pao->val = pCamera->noiseRatio;
         pao->hopr = pao->drvh = 0.0;
         pao->lopr = pao->drvl = 1.0;
@@ -839,17 +840,17 @@ static long init_ao( struct aoRecord * pao)
 
 static long write_ao(struct aoRecord * pao)
 {
-    PTM6710CL_DEVDATA * pdevdata;
-    PTM6710CL_CAMERA * pCamera;
+    UP685CL8B_DEVDATA * pdevdata;
+    UP685CL8B_CAMERA * pCamera;
 
     if(!(pao->dpvt)) return -1;
 
-    pdevdata = (PTM6710CL_DEVDATA *)(pao->dpvt);
+    pdevdata = (UP685CL8B_DEVDATA *)(pao->dpvt);
     pCamera = pdevdata->pCamera;
 
     switch(pdevdata->function)
     {
-    case PTM6710CL_AO_NoiseRatio:
+    case UP685CL8B_AO_NoiseRatio:
         pCamera->noiseRatio = pao->val;
         break;
     default:
@@ -866,14 +867,14 @@ static long init_bi( struct biRecord * pbi)
 
     if (pbi->inp.type!=INST_IO)
     {
-        recGblRecordError(S_db_badField, (void *)pbi, "devBiEDTCL_PTM6710 Init_record, Illegal INP");
+        recGblRecordError(S_db_badField, (void *)pbi, "devBiEDTCL_UP685CL8B Init_record, Illegal INP");
         pbi->pact=TRUE;
         return (S_db_badField);
     }
 
     pbi->mask = 0;
 
-    if( PTM6710CL_DevData_Init((dbCommon *)pbi, EPICS_RTYPE_BI, pbi->inp.value.instio.string) != 0 )
+    if( UP685CL8B_DevData_Init((dbCommon *)pbi, EPICS_RTYPE_BI, pbi->inp.value.instio.string) != 0 )
     {
         errlogPrintf("Fail to init devdata for record %s!\n", pbi->name);
         recGblRecordError(S_db_badField, (void *) pbi, "Init devdata Error");
@@ -886,8 +887,8 @@ static long init_bi( struct biRecord * pbi)
 
 static long read_bi(struct biRecord * pbi)
 {
-    PTM6710CL_DEVDATA * pdevdata;
-    PTM6710CL_CAMERA * pCamera;
+    UP685CL8B_DEVDATA * pdevdata;
+    UP685CL8B_CAMERA * pCamera;
 
     IMAGE_BUF * pCurImageBuf;	/* current image buffer, could be ping-pong or circular buffer */
     IMAGE_BUF * pHisImageBuf;	/* history image buffer, must be from circular buffer */
@@ -896,7 +897,7 @@ static long read_bi(struct biRecord * pbi)
 
     if(!(pbi->dpvt)) return -1;
 
-    pdevdata = (PTM6710CL_DEVDATA *)(pbi->dpvt);
+    pdevdata = (UP685CL8B_DEVDATA *)(pbi->dpvt);
     pCamera = pdevdata->pCamera;
 
     if(pCamera->saveImage)
@@ -933,7 +934,7 @@ static long read_bi(struct biRecord * pbi)
 
     switch(pdevdata->function)
     {
-    case PTM6710CL_BI_CurDarkImg:
+    case UP685CL8B_BI_CurDarkImg:
         if(pCurImageBuf)
         {
             epicsMutexLock(pCamera->mutexLock);
@@ -951,7 +952,7 @@ static long read_bi(struct biRecord * pbi)
             recGblSetSevr(pbi,READ_ALARM,INVALID_ALARM);
         }
         break;
-    case PTM6710CL_BI_CurSpltImg:
+    case UP685CL8B_BI_CurSpltImg:
         if(pCurImageBuf)
         {
             pbi->rval = pCurImageBuf->splittedImage;
@@ -964,7 +965,7 @@ static long read_bi(struct biRecord * pbi)
             recGblSetSevr(pbi,READ_ALARM,INVALID_ALARM);
         }
         break;
-    case PTM6710CL_BI_HisSpltImg:
+    case UP685CL8B_BI_HisSpltImg:
         if(pHisImageBuf)
         {
             pbi->rval = pHisImageBuf->splittedImage;
@@ -987,21 +988,21 @@ static long read_bi(struct biRecord * pbi)
 /********* bo record *****************/
 static long init_bo( struct boRecord * pbo)
 {
-    PTM6710CL_DEVDATA * pdevdata;
-    PTM6710CL_CAMERA * pCamera;
+    UP685CL8B_DEVDATA * pdevdata;
+    UP685CL8B_CAMERA * pCamera;
 
     pbo->dpvt = NULL;
 
     if (pbo->out.type!=INST_IO)
     {
-        recGblRecordError(S_db_badField, (void *)pbo, "devBoEDTCL_PTM6710 Init_record, Illegal OUT");
+        recGblRecordError(S_db_badField, (void *)pbo, "devBoEDTCL_UP685CL8B Init_record, Illegal OUT");
         pbo->pact=TRUE;
         return (S_db_badField);
     }
 
     pbo->mask = 0;
 
-    if( PTM6710CL_DevData_Init((dbCommon *)pbo, EPICS_RTYPE_BO, pbo->out.value.instio.string) != 0 )
+    if( UP685CL8B_DevData_Init((dbCommon *)pbo, EPICS_RTYPE_BO, pbo->out.value.instio.string) != 0 )
     {
         errlogPrintf("Fail to init devdata for record %s!\n", pbo->name);
         recGblRecordError(S_db_badField, (void *) pbo, "Init devdata Error");
@@ -1009,12 +1010,12 @@ static long init_bo( struct boRecord * pbo)
         return (S_db_badField);
     }
 
-    pdevdata = (PTM6710CL_DEVDATA *)(pbo->dpvt);
+    pdevdata = (UP685CL8B_DEVDATA *)(pbo->dpvt);
     pCamera = pdevdata->pCamera;
 
     switch(pdevdata->function)
     {
-    case PTM6710CL_BO_SaveImage:
+    case UP685CL8B_BO_SaveImage:
         pbo->rval = pCamera->saveImage;
         pbo->udf = FALSE;
         pbo->stat = pbo->sevr = NO_ALARM;
@@ -1027,17 +1028,17 @@ static long init_bo( struct boRecord * pbo)
 
 static long write_bo(struct boRecord * pbo)
 {
-    PTM6710CL_DEVDATA * pdevdata;
-    PTM6710CL_CAMERA * pCamera;
+    UP685CL8B_DEVDATA * pdevdata;
+    UP685CL8B_CAMERA * pCamera;
 
     if(!(pbo->dpvt)) return -1;
 
-    pdevdata = (PTM6710CL_DEVDATA *)(pbo->dpvt);
+    pdevdata = (UP685CL8B_DEVDATA *)(pbo->dpvt);
     pCamera = pdevdata->pCamera;
 
     switch(pdevdata->function)
     {
-    case PTM6710CL_BO_SaveImage:
+    case UP685CL8B_BO_SaveImage:
         pCamera->saveImage = pbo->rval;
         break;
     default:
@@ -1054,12 +1055,12 @@ static long init_li( struct longinRecord * pli)
 
     if (pli->inp.type!=INST_IO)
     {
-        recGblRecordError(S_db_badField, (void *)pli, "devLiEDTCL_PTM6710 Init_record, Illegal INP");
+        recGblRecordError(S_db_badField, (void *)pli, "devLiEDTCL_UP685CL8B Init_record, Illegal INP");
         pli->pact=TRUE;
         return (S_db_badField);
     }
 
-    if( PTM6710CL_DevData_Init((dbCommon *)pli, EPICS_RTYPE_LI, pli->inp.value.instio.string) != 0 )
+    if( UP685CL8B_DevData_Init((dbCommon *)pli, EPICS_RTYPE_LI, pli->inp.value.instio.string) != 0 )
     {
         errlogPrintf("Fail to init devdata for record %s!\n", pli->name);
         recGblRecordError(S_db_badField, (void *) pli, "Init devdata Error");
@@ -1072,26 +1073,26 @@ static long init_li( struct longinRecord * pli)
 
 static long read_li(struct longinRecord * pli)
 {
-    PTM6710CL_DEVDATA * pdevdata;
-    PTM6710CL_CAMERA * pCamera;
+    UP685CL8B_DEVDATA * pdevdata;
+    UP685CL8B_CAMERA * pCamera;
 
     if(!(pli->dpvt)) return -1;
 
-    pdevdata = (PTM6710CL_DEVDATA *)(pli->dpvt);
+    pdevdata = (UP685CL8B_DEVDATA *)(pli->dpvt);
     pCamera = pdevdata->pCamera;
 
     switch(pdevdata->function)
     {
-    case PTM6710CL_LI_NumOfCol:
+    case UP685CL8B_LI_NumOfCol:
         pli->val = pCamera->numOfCol;
         break;
-    case PTM6710CL_LI_NumOfRow:
+    case UP685CL8B_LI_NumOfRow:
         pli->val = pCamera->numOfRow;
         break;
-    case PTM6710CL_LI_NumOfBits:
+    case UP685CL8B_LI_NumOfBits:
         pli->val = pCamera->numOfBits;
         break;
-    case PTM6710CL_LI_FrameRate:
+    case UP685CL8B_LI_FrameRate:
         pli->val = pCamera->frameCounts;
         pCamera->frameCounts = 0;
         break;
@@ -1105,19 +1106,19 @@ static long read_li(struct longinRecord * pli)
 /********* lo record *****************/
 static long init_lo( struct longoutRecord * plo)
 {
-    PTM6710CL_DEVDATA * pdevdata;
-    PTM6710CL_CAMERA * pCamera;
+    UP685CL8B_DEVDATA * pdevdata;
+    UP685CL8B_CAMERA * pCamera;
 
     plo->dpvt = NULL;
 
     if (plo->out.type!=INST_IO)
     {
-        recGblRecordError(S_db_badField, (void *)plo, "devLoEDTCL_PTM6710 Init_record, Illegal OUT");
+        recGblRecordError(S_db_badField, (void *)plo, "devLoEDTCL_UP685CL8B Init_record, Illegal OUT");
         plo->pact=TRUE;
         return (S_db_badField);
     }
 
-    if( PTM6710CL_DevData_Init((dbCommon *)plo, EPICS_RTYPE_LO, plo->out.value.instio.string) != 0 )
+    if( UP685CL8B_DevData_Init((dbCommon *)plo, EPICS_RTYPE_LO, plo->out.value.instio.string) != 0 )
     {
         errlogPrintf("Fail to init devdata for record %s!\n", plo->name);
         recGblRecordError(S_db_badField, (void *) plo, "Init devdata Error");
@@ -1125,19 +1126,19 @@ static long init_lo( struct longoutRecord * plo)
         return (S_db_badField);
     }
 
-    pdevdata = (PTM6710CL_DEVDATA *)(plo->dpvt);
+    pdevdata = (UP685CL8B_DEVDATA *)(plo->dpvt);
     pCamera = pdevdata->pCamera;
 
     switch(pdevdata->function)
     {
-    case PTM6710CL_LO_HisIndex:
+    case UP685CL8B_LO_HisIndex:
         plo->val = pCamera->historyBufReadOffset;
         plo->hopr = plo->drvh = 0;
         plo->lopr = plo->drvl = 2 - NUM_OF_FRAMES; /* one frame is always reserved */
         plo->udf = FALSE;
         plo->stat = plo->sevr = NO_ALARM;
         break;
-    case PTM6710CL_LO_ThresholdP2P:
+    case UP685CL8B_LO_ThresholdP2P:
     /* use record to limit and init it */
         break;
     default:
@@ -1148,20 +1149,20 @@ static long init_lo( struct longoutRecord * plo)
 
 static long write_lo(struct longoutRecord * plo)
 {
-    PTM6710CL_DEVDATA * pdevdata;
-    PTM6710CL_CAMERA * pCamera;
+    UP685CL8B_DEVDATA * pdevdata;
+    UP685CL8B_CAMERA * pCamera;
 
     if(!(plo->dpvt)) return -1;
 
-    pdevdata = (PTM6710CL_DEVDATA *)(plo->dpvt);
+    pdevdata = (UP685CL8B_DEVDATA *)(plo->dpvt);
     pCamera = pdevdata->pCamera;
 
     switch(pdevdata->function)
     {
-    case PTM6710CL_LO_HisIndex:
+    case UP685CL8B_LO_HisIndex:
         pCamera->historyBufReadOffset = plo->val;/* we just take the vaule, the record will limit the range and other read will mark invalid if it is out of range */
         break;
-    case PTM6710CL_LO_ThresholdP2P:
+    case UP685CL8B_LO_ThresholdP2P:
         epicsMutexLock(pCamera->mutexLock);
         pCamera->thresholdP2PProjX = plo->val * pCamera->numOfRow;
         pCamera->thresholdP2PProjY = plo->val * pCamera->numOfCol;
@@ -1181,12 +1182,12 @@ static long init_wf(struct waveformRecord *pwf)
 
     if (pwf->inp.type!=INST_IO)
     {
-        recGblRecordError(S_db_badField, (void *)pwf, "devWfEDTCL_PTM6710 Init_record, Illegal INP");
+        recGblRecordError(S_db_badField, (void *)pwf, "devWfEDTCL_UP685CL8B Init_record, Illegal INP");
         pwf->pact=TRUE;
         return (S_db_badField);
     }
 
-    if( PTM6710CL_DevData_Init((dbCommon *)pwf, EPICS_RTYPE_WF, pwf->inp.value.instio.string) != 0 )
+    if( UP685CL8B_DevData_Init((dbCommon *)pwf, EPICS_RTYPE_WF, pwf->inp.value.instio.string) != 0 )
     {
         errlogPrintf("Fail to init devdata for record %s!\n", pwf->name);
         recGblRecordError(S_db_badField, (void *) pwf, "Init devdata Error");
@@ -1199,8 +1200,8 @@ static long init_wf(struct waveformRecord *pwf)
 
 static long read_wf(struct waveformRecord * pwf)
 {
-    PTM6710CL_DEVDATA * pdevdata;
-    PTM6710CL_CAMERA * pCamera;
+    UP685CL8B_DEVDATA * pdevdata;
+    UP685CL8B_CAMERA * pCamera;
 
     IMAGE_BUF * pCurImageBuf;	/* current image buffer, could be ping-pong or circular buffer */
     IMAGE_BUF * pHisImageBuf;	/* history image buffer, must be from  circular buffer */
@@ -1210,7 +1211,7 @@ static long read_wf(struct waveformRecord * pwf)
 
     if(!(pwf->dpvt)) return -1;
 
-    pdevdata = (PTM6710CL_DEVDATA *)(pwf->dpvt);
+    pdevdata = (UP685CL8B_DEVDATA *)(pwf->dpvt);
     pCamera = pdevdata->pCamera;
 
     if(pCamera->saveImage)
@@ -1247,11 +1248,11 @@ static long read_wf(struct waveformRecord * pwf)
 
     switch(pdevdata->function)
     {
-    case PTM6710CL_WF_CurImage:
+    case UP685CL8B_WF_CurImage:
         /* we know num of pixel is equal num of bytes */
         if(pwf->ftvl != DBF_UCHAR || pwf->nelm != pCamera->imageSize)
         {
-            recGblRecordError(S_db_badField, (void *)pwf, "devWfEDTCL_PTM6710 read_record, Illegal FTVL or NELM field");
+            recGblRecordError(S_db_badField, (void *)pwf, "devWfEDTCL_UP685CL8B read_record, Illegal FTVL or NELM field");
             pwf->pact=TRUE;
             return (S_db_badField);
         }
@@ -1269,11 +1270,11 @@ static long read_wf(struct waveformRecord * pwf)
             recGblSetSevr(pwf,READ_ALARM,INVALID_ALARM);
         }
         break;
-    case PTM6710CL_WF_HisImage:
+    case UP685CL8B_WF_HisImage:
         /* we know num of pixel is equal num of bytes */
         if(pwf->ftvl != DBF_UCHAR || pwf->nelm != pCamera->imageSize)
         {
-            recGblRecordError(S_db_badField, (void *)pwf, "devWfEDTCL_PTM6710 read_record, Illegal FTVL or NELM field");
+            recGblRecordError(S_db_badField, (void *)pwf, "devWfEDTCL_UP685CL8B read_record, Illegal FTVL or NELM field");
             pwf->pact=TRUE;
             return (S_db_badField);
         }
@@ -1291,10 +1292,10 @@ static long read_wf(struct waveformRecord * pwf)
             recGblSetSevr(pwf,READ_ALARM,INVALID_ALARM);
         }
         break;
-    case PTM6710CL_WF_CurProjX:
+    case UP685CL8B_WF_CurProjX:
         if(pwf->ftvl != DBF_LONG || pwf->nelm != pCamera->numOfCol)
         {
-            recGblRecordError(S_db_badField, (void *)pwf, "devWfEDTCL_PTM6710 read_record, Illegal FTVL or NELM field");
+            recGblRecordError(S_db_badField, (void *)pwf, "devWfEDTCL_UP685CL8B read_record, Illegal FTVL or NELM field");
             pwf->pact=TRUE;
             return (S_db_badField);
         }
@@ -1311,10 +1312,10 @@ static long read_wf(struct waveformRecord * pwf)
             recGblSetSevr(pwf,READ_ALARM,INVALID_ALARM);
         }
         break;
-    case PTM6710CL_WF_CurProjY:
+    case UP685CL8B_WF_CurProjY:
         if(pwf->ftvl != DBF_LONG || pwf->nelm != pCamera->numOfRow)
         {
-            recGblRecordError(S_db_badField, (void *)pwf, "devWfEDTCL_PTM6710 read_record, Illegal FTVL or NELM field");
+            recGblRecordError(S_db_badField, (void *)pwf, "devWfEDTCL_UP685CL8B read_record, Illegal FTVL or NELM field");
             pwf->pact=TRUE;
             return (S_db_badField);
         }
@@ -1331,10 +1332,10 @@ static long read_wf(struct waveformRecord * pwf)
             recGblSetSevr(pwf,READ_ALARM,INVALID_ALARM);
         }
         break;
-    case PTM6710CL_WF_HisProjX:
+    case UP685CL8B_WF_HisProjX:
         if(pwf->ftvl != DBF_LONG || pwf->nelm != pCamera->numOfCol)
         {
-            recGblRecordError(S_db_badField, (void *)pwf, "devWfEDTCL_PTM6710 read_record, Illegal FTVL or NELM field");
+            recGblRecordError(S_db_badField, (void *)pwf, "devWfEDTCL_UP685CL8B read_record, Illegal FTVL or NELM field");
             pwf->pact=TRUE;
             return (S_db_badField);
         }
@@ -1351,10 +1352,10 @@ static long read_wf(struct waveformRecord * pwf)
             recGblSetSevr(pwf,READ_ALARM,INVALID_ALARM);
         }
         break;
-    case PTM6710CL_WF_HisProjY:
+    case UP685CL8B_WF_HisProjY:
         if(pwf->ftvl != DBF_LONG || pwf->nelm != pCamera->numOfRow)
         {
-            recGblRecordError(S_db_badField, (void *)pwf, "devWfEDTCL_PTM6710 read_record, Illegal FTVL or NELM field");
+            recGblRecordError(S_db_badField, (void *)pwf, "devWfEDTCL_UP685CL8B read_record, Illegal FTVL or NELM field");
             pwf->pact=TRUE;
             return (S_db_badField);
         }
