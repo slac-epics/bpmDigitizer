@@ -13,6 +13,8 @@ include $(TOP)/configure/CONFIG
 DB += camera640480.db
 DB += camera13921040.db
 DB += camera20482048.db
+DB += camera640480_UP685_8B.db
+DB += camera640480_UP685_10B.db
 
 #----------------------------------------------------
 # If <anyname>.db template is not named <anyname>*.template add
