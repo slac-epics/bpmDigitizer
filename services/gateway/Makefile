@@ -20,7 +20,7 @@ NETWORKS=cds-amo.pcdsn cds-fee.pcdsn cds.pcdsn dev.pcdsn mcc-epics.pcdsn dev.lab
 
 # NETWORK_EXPANDED is a list of networks with all domains above (ex if a.b
 # is in NETWORKS then a.b AND b will be in NETWORKS_EXPANDED
-find_domains=$(if $(findstring .,$(1)),$(1) $(call find_domains, $(shell echo $(1) | sed -e 's|.*\.||')),$(1))
+find_domains=$(if $(findstring .,$(1)),$(1) $(call find_domains, $(shell echo $(1) | sed -e 's|[^\.]*\.||')),$(1))
 NETWORKS_EXPANDED=$(sort $(foreach subnet,$(NETWORKS),$(call find_domains, $(subnet))))
 
 ENV_FILES=default.gwenv $(addsuffix .gwenv,$(NETWORKS_EXPANDED))

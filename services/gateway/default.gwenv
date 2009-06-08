@@ -18,7 +18,7 @@ CMD_FILE=${OUT_DIR}/$(hostname).cmd
 # Variable related to EPICS PVs for the gateway
 # PV_PREFIX will be GW:<area>:<subnet>
 PV_PREFIX=""
-for net in GW $(echo ${CAS_SUBNET_NAME} | sed -e 's|\.| |'); do
+for net in GW $(echo ${CAS_SUBNET_NAME} | sed -e 's|\.| |g'); do
 	PV_PREFIX="${net}:${PV_PREFIX}"
 done
 
