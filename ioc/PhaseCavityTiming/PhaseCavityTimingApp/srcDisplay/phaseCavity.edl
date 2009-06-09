@@ -104,7 +104,7 @@ x 339
 y 238
 w 56
 h 16
-controlPv "$(digi):WAV.NORD"
+controlPv "$(IOC):dig1:WAV.NORD"
 font "helvetica-bold-i-14.0"
 fgColor index 19
 fgAlarm
@@ -195,7 +195,7 @@ y2Max 1
 # Trace Properties
 numTraces 1
 yPv {
-  0 "$(digi):WAV"
+  0 "$(IOC):dig1:WAV"
 }
 opMode {
   0 "plot"
@@ -287,7 +287,7 @@ x 625
 y 120
 w 85
 h 16
-controlPv "$(digi):ASTA"
+controlPv "$(IOC):dig1:ASTA"
 format "hex"
 font "helvetica-bold-i-14.0"
 fontAlign "center"
@@ -402,7 +402,7 @@ x 625
 y 144
 w 85
 h 16
-controlPv "$(digi):ISTA"
+controlPv "$(IOC):dig1:ISTA"
 format "hex"
 font "helvetica-bold-i-14.0"
 fontAlign "center"
@@ -433,7 +433,7 @@ onColor index 6
 offColor index 6
 topShadowColor index 3
 botShadowColor index 11
-controlPv "$(digi):ISTARST.PROC"
+controlPv "$(IOC):dig1:ISTARST.PROC"
 pressValue "1"
 releaseValue "0"
 onLabel "Clear"
@@ -472,7 +472,7 @@ x 625
 y 172
 w 82
 h 16
-controlPv "$(digi):ISTAHW"
+controlPv "$(IOC):dig1:ISTAHW"
 format "hex"
 font "helvetica-bold-i-14.0"
 fontAlign "center"
@@ -504,7 +504,7 @@ offColor index 4
 inconsistentColor index 14
 topShadowColor index 1
 botShadowColor index 14
-controlPv "do0:port0:out0"
+controlPv "$(IOC):do0:port0:out0"
 onLabel "Resyncing"
 offLabel "Resync"
 labelType "literal"
@@ -541,7 +541,7 @@ major 4
 minor 0
 release 0
 x 305
-y 46
+y 48
 w 192
 h 155
 lineColor index 5
@@ -557,7 +557,7 @@ major 4
 minor 0
 release 0
 x 310
-y 59
+y 61
 w 181
 h 137
 lineColor index 14
@@ -571,7 +571,7 @@ major 4
 minor 1
 release 0
 x 333
-y 52
+y 54
 w 112
 h 16
 font "helvetica-bold-i-14.0"
@@ -591,7 +591,7 @@ major 4
 minor 0
 release 0
 x 321
-y 73
+y 75
 w 161
 h 24
 
@@ -604,7 +604,7 @@ major 4
 minor 0
 release 0
 x 381
-y 73
+y 75
 w 101
 h 24
 fgColor index 26
@@ -612,7 +612,7 @@ bgColor index 6
 inconsistentColor index 14
 topShadowColor index 2
 botShadowColor index 11
-controlPv "$(digi):ARM"
+controlPv "$(IOC):dig1:ARM"
 font "helvetica-bold-i-12.0"
 endObjectProperties
 
@@ -623,7 +623,7 @@ major 4
 minor 1
 release 0
 x 321
-y 77
+y 79
 w 50
 h 16
 font "helvetica-bold-r-14.0"
@@ -647,7 +647,7 @@ major 4
 minor 0
 release 0
 x 321
-y 103
+y 105
 w 159
 h 24
 
@@ -660,7 +660,7 @@ major 4
 minor 0
 release 0
 x 380
-y 103
+y 105
 w 100
 h 24
 fgColor index 26
@@ -668,7 +668,7 @@ bgColor index 6
 inconsistentColor index 14
 topShadowColor index 2
 botShadowColor index 11
-controlPv "$(digi):CLK"
+controlPv "$(IOC):dig1:CLK"
 font "helvetica-bold-i-12.0"
 endObjectProperties
 
@@ -679,7 +679,7 @@ major 4
 minor 1
 release 0
 x 321
-y 107
+y 109
 w 40
 h 16
 font "helvetica-bold-r-14.0"
@@ -703,7 +703,7 @@ major 4
 minor 0
 release 0
 x 382
-y 135
+y 137
 w 97
 h 24
 fgColor index 26
@@ -711,7 +711,7 @@ bgColor index 6
 inconsistentColor index 14
 topShadowColor index 2
 botShadowColor index 11
-controlPv "$(digi):PGA"
+controlPv "$(IOC):dig1:PGA"
 font "helvetica-bold-i-12.0"
 endObjectProperties
 
@@ -765,7 +765,7 @@ x 625
 y 77
 w 86
 h 16
-controlPv "di0:port0:in0"
+controlPv "$(IOC):di0:port0:in0"
 format "string"
 font "helvetica-bold-r-14.0"
 fontAlign "center"
@@ -789,9 +789,9 @@ major 4
 minor 0
 release 0
 x 740
-y 50
+y 48
 w 249
-h 153
+h 155
 lineColor index 5
 fill
 fillColor index 5
@@ -819,7 +819,7 @@ major 4
 minor 0
 release 0
 x 192
-y 101
+y 100
 w 40
 h 19
 fgColor index 14
@@ -828,7 +828,7 @@ offColor index 4
 inconsistentColor index 14
 topShadowColor index 0
 botShadowColor index 14
-controlPv "rfCavity:attenuator_up"
+controlPv "$(IOC):attenuator_up"
 onLabel "Up"
 offLabel "Up"
 labelType "literal"
@@ -846,7 +846,7 @@ minor 0
 release 0
 x 237
 y 100
-w 42
+w 40
 h 19
 fgColor index 14
 onColor index 43
@@ -854,7 +854,7 @@ offColor index 4
 inconsistentColor index 14
 topShadowColor index 0
 botShadowColor index 14
-controlPv "rfCavity:attenuator_down"
+controlPv "$(IOC):attenuator_down"
 onLabel "Down"
 offLabel "Down"
 labelType "literal"
@@ -874,7 +874,7 @@ x 118
 y 103
 w 56
 h 16
-controlPv "rfCavity:attenuator"
+controlPv "$(IOC):attenuator"
 font "helvetica-bold-r-14.0"
 fontAlign "center"
 fgColor index 19
@@ -939,7 +939,7 @@ x 861
 y 72
 w 110
 h 16
-controlPv "ICS_Test:Beck_BH3KL3314:TEMP1"
+controlPv "UND:R01:BHC:05:KL3314:SLOT1:TEMP1"
 font "helvetica-bold-r-14.0"
 fgColor index 19
 bgColor index 0
@@ -964,7 +964,7 @@ x 861
 y 92
 w 110
 h 16
-controlPv "ICS_Test:Beck_BH3KL3314:TEMP2"
+controlPv "UND:R01:BHC:05:KL3314:SLOT1:TEMP2"
 font "helvetica-bold-r-14.0"
 fgColor index 19
 bgColor index 0
@@ -1009,7 +1009,7 @@ x 861
 y 112
 w 110
 h 16
-controlPv "ICS_Test:Beck_BH3KL3314:TEMP3"
+controlPv "UND:R01:BHC:05:KL3314:SLOT1:TEMP3"
 font "helvetica-bold-r-14.0"
 fgColor index 19
 bgColor index 0
@@ -1054,7 +1054,7 @@ x 861
 y 132
 w 110
 h 16
-controlPv "ICS_Test:Beck_BH3KL3314:TEMP4"
+controlPv "UND:R01:BHC:05:KL3314:SLOT1:TEMP4"
 font "helvetica-bold-r-14.0"
 fgColor index 19
 bgColor index 0
@@ -1099,7 +1099,7 @@ x 861
 y 152
 w 110
 h 16
-controlPv "ICS_Test:Beck_BH3KL3314:TEMP5"
+controlPv "UND:R01:BHC:05:KL3314:SLOT2:TEMP5"
 font "helvetica-bold-r-14.0"
 fgColor index 19
 bgColor index 0
@@ -1144,7 +1144,7 @@ x 861
 y 173
 w 110
 h 16
-controlPv "ICS_Test:Beck_BH3KL3314:TEMP6"
+controlPv "UND:R01:BHC:05:KL3314:SLOT2:TEMP6"
 font "helvetica-bold-r-14.0"
 fgColor index 19
 bgColor index 0
@@ -1189,7 +1189,7 @@ x 340
 y 450
 w 56
 h 16
-controlPv "$(digi):WAV.NORD"
+controlPv "$(IOC):dig1:WAV.NORD"
 font "helvetica-bold-i-14.0"
 fgColor index 19
 fgAlarm
@@ -1260,7 +1260,7 @@ y2Max 1
 # Trace Properties
 numTraces 1
 yPv {
-  0 "$(digi):WAV"
+  0 "$(IOC):dig1:WAV"
 }
 opMode {
   0 "plot"

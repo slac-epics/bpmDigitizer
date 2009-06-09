@@ -1,58 +1,58 @@
 
-record( fanout, "rfCavity:attFanout" )
+record( fanout, "$(IOC):attFanout" )
 {
-	field(LNK1, "do0:port0:out1 PP")
-	field(LNK2, "do0:port0:out2 PP")
-	field(LNK3, "do0:port0:out3 PP")
-	field(LNK4, "do0:port0:out4 PP")
+	field(LNK1, "$(IOC):do0:port0:out1 PP")
+	field(LNK2, "$(IOC):do0:port0:out2 PP")
+	field(LNK3, "$(IOC):do0:port0:out3 PP")
+	field(LNK4, "$(IOC):do0:port0:out4 PP")
 }
 
-record(longout, "rfCavity:attenuator")
+record(longout, "$(IOC):attenuator")
 {
 	field(DESC, "RF Cavity Attenuator")
 	field(LOPR, "1")
 	field(HOPR, "15")
-	field(FLNK, "rfCavity:attMultibit PP")
+	field(FLNK, "$(IOC):attMultibit PP")
 }
 
-record(bo, "rfCavity:attenuator_up")
+record(bo, "$(IOC):attenuator_up")
 {
-	field(FLNK, "rfCavity:attenuator_incr PP")
+	field(FLNK, "$(IOC):attenuator_incr PP")
 }
 
-record(calcout, "rfCavity:attenuator_incr")
+record(calcout, "$(IOC):attenuator_incr")
 {
 	field(CALC,	"A<15?(A+I):A")
-	field(INPA,	"rfCavity:attenuator NPP")
-	field(INPI,	"rfCavity:attenuator_up")
-	field(OUT,	"rfCavity:attenuator")
-	field(FLNK,	"rfCavity:attenuator PP")
+	field(INPA,	"$(IOC):attenuator NPP")
+	field(INPI,	"$(IOC):attenuator_up")
+	field(OUT,	"$(IOC):attenuator")
+	field(FLNK,	"$(IOC):attenuator PP")
 }
 
-record(bo, "rfCavity:attenuator_down")
+record(bo, "$(IOC):attenuator_down")
 {
-	field(FLNK, "rfCavity:attenuator_decr PP")
+	field(FLNK, "$(IOC):attenuator_decr PP")
 }
 
-record(calcout, "rfCavity:attenuator_decr")
+record(calcout, "$(IOC):attenuator_decr")
 {
 	field(CALC,	"A>0?A-I:A")
-	field(INPA,	"rfCavity:attenuator NPP")
-	field(INPI,	"rfCavity:attenuator_down")
-	field(OUT,	"rfCavity:attenuator")
-	field(FLNK,	"rfCavity:attenuator PP")
+	field(INPA,	"$(IOC):attenuator NPP")
+	field(INPI,	"$(IOC):attenuator_down")
+	field(OUT,	"$(IOC):attenuator")
+	field(FLNK,	"$(IOC):attenuator PP")
 }
 
-record(mbbiDirect, "rfCavity:attMultibit")
+record(mbbiDirect, "$(IOC):attMultibit")
 {
 	field(DESC, "Attenuator multibit breakout")
-	field(INP, "rfCavity:attenuator NPP" )
-	field(FLNK, "rfCavity:attFanout PP")
+	field(INP, "$(IOC):attenuator NPP" )
+	field(FLNK, "$(IOC):attFanout PP")
 }
 
-record(bo, "do0:port0:out0" )
+record(bo, "$(IOC):do0:port0:out0" )
 {
-	field(DESC, "Beam Time Monitor Resync Control")
+	field(DESC, "BeamTimeMonitor Resync Ctrl")
 	field(DTYP, "ACROMAG-IP445")
 	field(OUT, "@do0 P0 B1")
 	field(ZNAM, "Off")
@@ -62,64 +62,55 @@ record(bo, "do0:port0:out0" )
 
 record(bo, "UND:R01:BTM:01:resync" )
 {
-	field(DESC, "Beam Time Monitor Resync Control")
+	field(DESC, "BeamTimeMonitor Resync Ctrl")
 	field(DOL, "do0:port0:out0 NPP" )
 	field(OMSL, "closed_loop" )
 	field(ZNAM, "Off")
 	field(ONAM, "On")
-	field(FLNK, "UND:R02:IOC:19:do0:port0:out0 PP" )
 }
 
-record(bo, "UND:R02:IOC:19:do0:port0:out0" )
+
+record(bo, "$(IOC):do0:port0:out1" )
 {
-	field(DESC, "Beam Time Monitor Resync Control")
-	field(DOL, "UND:R01:BTM:01:resync" )
+	field(DESC, "RF Attenuator Ctrl 1")
+	field(DTYP, "ACROMAG-IP445")
+	field(DOL, "$(IOC):attMultibit.B0 NPP" )
 	field(OMSL, "closed_loop" )
+	field(OUT, "@do0 P0 B1")
 	field(ZNAM, "Off")
 	field(ONAM, "On")
 }
 
-record(bo, "do0:port0:out1" )
+record(bo, "$(IOC):do0:port0:out2" )
 {
-  field(DESC, "RF Attenuator Ctrl 1")
-  field(DTYP, "ACROMAG-IP445")
-  field(DOL, "rfCavity:attMultibit.B0 NPP" )
-  field(OMSL, "closed_loop" )
-  field(OUT, "@do0 P0 B1")
-  field(ZNAM, "Off")
-  field(ONAM, "On")
+	field(DESC, "RF Attenuator Ctrl 2")
+	field(DTYP, "ACROMAG-IP445")
+	field(DOL, "$(IOC):attMultibit.B1 NPP" )
+	field(OMSL, "closed_loop" )
+	field(OUT, "@do0 P0 B2")
+	field(SCAN, "Passive")
+	field(ZNAM, "Off")
+	field(ONAM, "On")
 }
 
-record(bo, "do0:port0:out2" )
+record(bo, "$(IOC):do0:port0:out3" )
 {
-  field(DESC, "RF Attenuator Ctrl 2")
-  field(DTYP, "ACROMAG-IP445")
-  field(DOL, "rfCavity:attMultibit.B1 NPP" )
-  field(OMSL, "closed_loop" )
-  field(OUT, "@do0 P0 B2")
-  field(SCAN, "Passive")
-  field(ZNAM, "Off")
-  field(ONAM, "On")
+	field(DESC, "RF Attenuator Ctrl 3")
+	field(DTYP, "ACROMAG-IP445")
+	field(DOL, "$(IOC):attMultibit.B2 NPP" )
+	field(OMSL, "closed_loop" )
+	field(OUT, "@do0 P0 B3")
+	field(ZNAM, "Off")
+	field(ONAM, "On")
 }
 
-record(bo, "do0:port0:out3" )
+record(bo, "$(IOC):do0:port0:out4" )
 {
-  field(DESC, "RF Attenuator Ctrl 3")
-  field(DTYP, "ACROMAG-IP445")
-  field(DOL, "rfCavity:attMultibit.B2 NPP" )
-  field(OMSL, "closed_loop" )
-  field(OUT, "@do0 P0 B3")
-  field(ZNAM, "Off")
-  field(ONAM, "On")
-}
-
-record(bo, "do0:port0:out4" )
-{
-  field(DESC, "RF Attenuator Ctrl 4")
-  field(DTYP, "ACROMAG-IP445")
-  field(DOL, "rfCavity:attMultibit.B3 NPP" )
-  field(OMSL, "closed_loop" )
-  field(OUT, "@do0 P0 B4")
-  field(ZNAM, "Off")
-  field(ONAM, "On")
+	field(DESC, "RF Attenuator Ctrl 4")
+	field(DTYP, "ACROMAG-IP445")
+	field(DOL, "$(IOC):attMultibit.B3 NPP" )
+	field(OMSL, "closed_loop" )
+	field(OUT, "@do0 P0 B4")
+	field(ZNAM, "Off")
+	field(ONAM, "On")
 }

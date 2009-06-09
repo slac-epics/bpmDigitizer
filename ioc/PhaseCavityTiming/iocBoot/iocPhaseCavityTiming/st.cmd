@@ -146,26 +146,32 @@ dbLoadDatabase("dbd/PhaseCavityTiming.dbd",0,0)
 PhaseCavityTiming_registerRecordDeviceDriver(pdbbase) 
 
 ## Load EPICS records
-dbLoadRecords( "db/IP231.db", "CARD=ao0" )
-dbLoadRecords( "db/IP330.db", "CARD=ai0" )
-dbLoadRecords( "db/ip440.db", "CARD=di0" )
-dbLoadRecords( "db/ip445.db", "CARD=do0" )
-dbLoadRecords( "db/rfCavity.db" )
-dbLoadRecords( "db/vmeDigiApp.db", "digi=dig1,card=1,nelm=4096" )
-dbLoadRecords( "db/phaseCavityevr.db", "LLL=UND,RRR=R01,NN=01" )
-dbLoadRecords( "db/Bx9000.db" )
-dbLoadRecords( "db/KL3314.db" )
+dbLoadRecords( "db/IP231.db", "IOC=UND:R02:IOC:19,CARD=ao0" )
+dbLoadRecords( "db/IP330.db", "IOC=UND:R02:IOC:19,CARD=ai0" )
+dbLoadRecords( "db/ip440.db", "IOC=UND:R02:IOC:19,CARD=di0" )
+dbLoadRecords( "db/ip445.db", "IOC=UND:R02:IOC:19,CARD=do0" )
+dbLoadRecords( "db/rfCavity.db", "IOC=UND:R02:IOC:19" )
+dbLoadRecords( "db/vmeDigiApp.db", "digi=UND:R02:IOC:19:dig1,card=1,nelm=4096" )
+dbLoadRecords( "db/phaseCavityevr.db", "IOC=UND:R02:IOC:19,EVR=UND:R02:EVR:19" )
+dbLoadRecords( "db/Bx9000.db", "COUPLER=beck-01,COUPLER_LOC=UND:R01:BHC:05" )
+dbLoadRecords( "db/KL3314.db", "COUPLER=beck-01,COUPLER_LOC=UND:R01:BHC:05" )
 
 # Load the gdb stub and start it
 ld( "/boot/rtems/rtems-4.7.1-p2/target/ssrlApps/powerpc-rtems/beatnik/bin/rtems-gdb-stub.obj" )
 rtems_gdb_start()
+
+# Already being loaded
+#ld( "/boot/rtems/rtems-4.7.1-p2/target/ssrlApps/powerpc-rtems/beatnik/bin/miscUtils.obj" )
+# Try spawnUtil()
 
 # Print list of loaded binaries (helpful for debugging)
 lsmod()
 
 # An EDM panel for the phase cavity timing IOC can be
 # started with the command:
-# edm -x -m "digi=<digi>" display/phaseCavity.edl
+# edm -x -m "IOC=<ioc_name>" display/phaseCavity.edl
+# Example:
+# edm -x -m "IOC=UND:R02:IOC:19" display/phaseCavity.edl
 
 # Convenience aliases
 reboot=rtemsReboot
