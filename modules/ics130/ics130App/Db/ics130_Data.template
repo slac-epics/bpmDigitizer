@@ -75,6 +75,8 @@ record(waveform, "$(DEV):$(SEC):$(LOC):1PulseData") {
   field(INP,  "#C$(card) S$(chnl) @1Pls")
   field(TSE,  "-2")
   field(EGU,  "$(UNIT)")
+  field(HOPR,  "40000")
+  field(LOPR,  "-40000")
   field(NELM, "$(samples)")
   field(FTVL, "FLOAT")
 }

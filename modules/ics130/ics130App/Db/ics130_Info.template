@@ -5,6 +5,8 @@ record(ai, "$(DEV):$(SEC):$(LOC):ActSmplRate") {
   field(PREC, "6")
   field(INP, "#C$(card) S0 @ActSmplRate")
   field(EGU, "KHz")
+  field(LOLO, "0")
+  field(LLSV, "MAJOR")
 }
 
 record(ai, "$(DEV):$(SEC):$(LOC):TriggerRate") {
@@ -14,6 +16,8 @@ record(ai, "$(DEV):$(SEC):$(LOC):TriggerRate") {
   field(PREC, "2")
   field(INP, "#C$(card) S0 @TriggerRate")
   field(EGU, "Hz")
+  field(LOW, "0")
+  field(LSV, "MINOR")
 }
 
 record(longout, "$(DEV):$(SEC):$(LOC):Decimation") {
