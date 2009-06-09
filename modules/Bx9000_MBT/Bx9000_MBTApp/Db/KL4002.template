@@ -1,5 +1,6 @@
-record(ao, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG1)") {
-  field(DESC, "Analog Channel 1 Set")
+record(ao, "$(SIG1)")
+{
+  field(DESC, "$(SIG1.DESC)")
   field(DTYP, "Bx9000_KL4002")
   field(OUT,  "@$(COUPLER):$(SLOT):W_ANA_OUT_1")
   field(PREC, "3")
@@ -14,8 +15,9 @@ record(ao, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG1)") {
   field(LINR, "LINEAR")
 }
 
-record(ao, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG2)") {
-  field(DESC, "Analog Channel 2 Set")
+record(ao, "$(SIG2)")
+{
+  field(DESC, "$(SIG2.DESC)")
   field(DTYP, "Bx9000_KL4002")
   field(OUT,  "@$(COUPLER):$(SLOT):W_ANA_OUT_2")
   field(PREC, "3")
@@ -31,13 +33,14 @@ record(ao, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG2)") {
 }
 
 # We put SIG1 macro in the name just to avoid name overlaping
-record(fanout, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG1)ReProc") {
+record(fanout, "$(SIG1)ReProc")
+{
   field(DESC, "FANOUT Reproc")
   field(SCAN, "Event")
   field(EVNT, "$(REPROCEVT)")
   field(SELM, "All")
-  field(LNK1, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG1)")
-  field(LNK2, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG2)")
+  field(LNK1, "$(SIG1)")
+  field(LNK2, "$(SIG2)")
   field(PINI, "NO")
 }
 

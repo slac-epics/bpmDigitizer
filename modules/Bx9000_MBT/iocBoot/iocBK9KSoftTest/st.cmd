@@ -44,22 +44,22 @@ Bx9000_Terminal_Add("ics-test-bh3", 16, "KL9010", 0)
 #####   Load "Fully instantiated" databases here  #####
 #######################################################
 ## Load record instances
-cd ${TOP}/iocBoot/${IOC}
-dbLoadTemplate("Bx9000Info-test.instance")
-dbLoadTemplate("KL1124-test.instance")
-dbLoadTemplate("KL2124-test.instance")
-dbLoadTemplate("KL3064-test.instance")
-dbLoadTemplate("KL3102-test.instance")
-dbLoadTemplate("KL4132-test.instance")
-dbLoadTemplate("KL4002-test.instance")
-dbLoadTemplate("KL3312-test.instance")
-dbLoadTemplate("KL3314-test.instance")
-dbLoadTemplate("KL1408-test.instance")
-dbLoadTemplate("KL2408-test.instance")
-dbLoadTemplate("KL2622-test.instance")
-dbLoadTemplate("KL1104-test.instance")
-dbLoadTemplate("KL3468-test.instance")
-dbLoadTemplate("KL3408-test.instance")
+cd ${TOP}/db
+dbLoadRecords("Bx9000.db", "COUPLER=ics-test-bh3,COUPLER_LOC=AMO:R01:IOC:07")
+dbLoadRecords("KL1124.db", "COUPLER=ics-test-bh3,COUPLER_LOC=AMO:R01:IOC:07")
+dbLoadRecords("KL2124.db", "COUPLER=ics-test-bh3,COUPLER_LOC=AMO:R01:IOC:07")
+dbLoadRecords("KL3064.db", "COUPLER=ics-test-bh3,COUPLER_LOC=AMO:R01:IOC:07")
+dbLoadRecords("KL3102.db", "COUPLER=ics-test-bh3,COUPLER_LOC=AMO:R01:IOC:07")
+dbLoadRecords("KL4132.db", "COUPLER=ics-test-bh3,COUPLER_LOC=AMO:R01:IOC:07")
+dbLoadRecords("KL4002.db", "COUPLER=ics-test-bh3,COUPLER_LOC=AMO:R01:IOC:07")
+dbLoadRecords("KL3312.db", "COUPLER=ics-test-bh3,COUPLER_LOC=AMO:R01:IOC:07")
+dbLoadRecords("KL3314.db", "COUPLER=ics-test-bh3,COUPLER_LOC=AMO:R01:IOC:07")
+dbLoadRecords("KL1408.db", "COUPLER=ics-test-bh3,COUPLER_LOC=AMO:R01:IOC:07")
+dbLoadRecords("KL2408.db", "COUPLER=ics-test-bh3,COUPLER_LOC=AMO:R01:IOC:07")
+dbLoadRecords("KL2622.db", "COUPLER=ics-test-bh3,COUPLER_LOC=AMO:R01:IOC:07")
+dbLoadRecords("KL1104.db", "COUPLER=ics-test-bh3,COUPLER_LOC=AMO:R01:IOC:07")
+dbLoadRecords("KL3468.db", "COUPLER=ics-test-bh3,COUPLER_LOC=AMO:R01:IOC:07")
+dbLoadRecords("KL3408.db", "COUPLER=ics-test-bh3,COUPLER_LOC=AMO:R01:IOC:07")
 ######################################################
 ### ---------- Database loading complete ----------###
 #######################################################

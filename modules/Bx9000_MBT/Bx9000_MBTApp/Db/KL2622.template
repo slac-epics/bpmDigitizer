@@ -1,5 +1,6 @@
-record(bo, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG1)") {
-  field(DESC, "Relay Channel 1 Set")
+record(bo, "$(SIG1)")
+{
+  field(DESC, "$(SIG1.DESC)")
   field(DTYP, "Bx9000_KL2622")
   field(OUT,  "@$(COUPLER):$(SLOT):W_DIG_OUT_1")
   field(ZNAM, "$(SIG1.ZNAM)")
@@ -7,8 +8,9 @@ record(bo, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG1)") {
   field(PINI, "$(SIG1.PINI)")
 }
 
-record(bo, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG2)") {
-  field(DESC, "Relay Channel 2 Set")
+record(bo, "$(SIG2)")
+{
+  field(DESC, "$(SIG2.DESC)")
   field(DTYP, "Bx9000_KL2622")
   field(OUT,  "@$(COUPLER):$(SLOT):W_DIG_OUT_2")
   field(ZNAM, "$(SIG2.ZNAM)")
@@ -17,13 +19,14 @@ record(bo, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG2)") {
 }
 
 # We put SIG1 macro in the name just to avoid name overlaping
-record(fanout, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG1)ReProc") {
+record(fanout, "$(SIG1)ReProc")
+{
   field(DESC, "FANOUT Reproc")
   field(SCAN, "Event")
   field(EVNT, "$(REPROCEVT)")
   field(SELM, "All")
-  field(LNK1, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG1)")
-  field(LNK2, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG2)")
+  field(LNK1, "$(SIG1)")
+  field(LNK2, "$(SIG2)")
   field(PINI, "NO")
 }
 

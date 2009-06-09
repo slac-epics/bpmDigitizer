@@ -1,4 +1,5 @@
-record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrBTSlot$(SLOT)") {
+record(longin, "$(COUPLER_LOC):CplrBTSlot$(SLOT)")
+{
   field(DESC, "Bus Terminal Type of slot $(SLOT)")
   field(SCAN, "10 second")
   field(PINI, "YES")

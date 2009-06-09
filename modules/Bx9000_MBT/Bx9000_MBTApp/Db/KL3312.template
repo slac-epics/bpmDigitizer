@@ -1,5 +1,6 @@
-record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG1)") {
-  field(DESC, "Temperature 1 Readback")
+record(ai, "$(SIG1)")
+{
+  field(DESC, "$(SIG1.DESC)")
   field(SCAN, "$(SIG1.SCAN)")
   field(DTYP, "Bx9000_KL3312")
   field(INP,  "@$(COUPLER):$(SLOT):R_ANA_IN_1")
@@ -21,8 +22,9 @@ record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG1)") {
   field(LSV,  "MINOR")
 }
 
-record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG2)") {
-  field(DESC, "Temperature 2 Readback")
+record(ai, "$(SIG2)")
+{
+  field(DESC, "$(SIG2.DESC)")
   field(SCAN, "$(SIG2.SCAN)")
   field(DTYP, "Bx9000_KL3312")
   field(INP,  "@$(COUPLER):$(SLOT):R_ANA_IN_2")

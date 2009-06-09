@@ -1,4 +1,5 @@
-record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrCoutWds") {
+record(longin, "$(COUPLER_LOC):CplrCoutWds")
+{
   field(DESC, "Complex output words")
   field(SCAN, "10 second")
   field(PINI, "YES")
@@ -6,7 +7,8 @@ record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrCoutWds") {
   field(INP,  "@$(COUPLER):0:COWCNT")
 }
 
-record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrCinWds") {
+record(longin, "$(COUPLER_LOC):CplrCinWds")
+{
   field(DESC, "Complex input words")
   field(SCAN, "10 second")
   field(PINI, "YES")
@@ -14,7 +16,8 @@ record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrCinWds") {
   field(INP,  "@$(COUPLER):0:CIWCNT")
 }
 
-record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrDoutBits") {
+record(longin, "$(COUPLER_LOC):CplrDoutBits")
+{
   field(DESC, "Digital output bits")
   field(SCAN, "10 second")
   field(PINI, "YES")
@@ -22,7 +25,8 @@ record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrDoutBits") {
   field(INP,  "@$(COUPLER):0:DOBCNT")
 }
 
-record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrDinBits") {
+record(longin, "$(COUPLER_LOC):CplrDinBits")
+{
   field(DESC, "Digital input bits")
   field(SCAN, "10 second")
   field(PINI, "YES")
@@ -30,7 +34,8 @@ record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrDinBits") {
   field(INP,  "@$(COUPLER):0:DIBCNT")
 }
 
-record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrNofConn") {
+record(longin, "$(COUPLER_LOC):CplrNofConn")
+{
   field(DESC, "Nth of Connection")
   field(SCAN, "10 second")
   field(PINI, "YES")
@@ -38,7 +43,8 @@ record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrNofConn") {
   field(INP,  "@$(COUPLER):0:NOFCONN")
 }
 
-record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrNofExcp") {
+record(longin, "$(COUPLER_LOC):CplrNofExcp")
+{
   field(DESC, "Nth of Exception")
   field(SCAN, "1 second")
   field(PINI, "YES")
@@ -46,7 +52,8 @@ record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrNofExcp") {
   field(INP,  "@$(COUPLER):0:NOFEXCP")
 }
 
-record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrNofPkts") {
+record(longin, "$(COUPLER_LOC):CplrNofPkts")
+{
   field(DESC, "Number of Packets Sent")
   field(SCAN, "1 second")
   field(PINI, "YES")
@@ -54,7 +61,8 @@ record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrNofPkts") {
   field(INP,  "@$(COUPLER):0:NOFPKTS")
 }
 
-record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrNofSigs") {
+record(longin, "$(COUPLER_LOC):CplrNofSigs")
+{
   field(DESC, "Number of Signals of Cplr")
   field(SCAN, "Passive")
   field(PINI, "YES")
@@ -62,7 +70,8 @@ record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrNofSigs") {
   field(INP,  "@$(COUPLER):0:NOFSIGS")
 }
 
-record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrOpThrdID") {
+record(longin, "$(COUPLER_LOC):CplrOpThrdID")
+{
   field(DESC, "Op thread ID")
   field(SCAN, "Passive")
   field(PINI, "YES")
@@ -70,7 +79,8 @@ record(longin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrOpThrdID") {
   field(INP,  "@$(COUPLER):0:OPTHRDID")
 }
 
-record(mbbi, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrReady") {
+record(mbbi, "$(COUPLER_LOC):CplrReady")
+{
   field(DESC, "Is Coupler Ready")
   field(SCAN, "1 second")
   field(PINI, "YES")
@@ -83,16 +93,17 @@ record(mbbi, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrReady") {
   field(ONST, "Ready")
   field(SHFT, "0")
   field(UNSV, "INVALID")
-  field(FLNK, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrReprocCalc")
+  field(FLNK, "$(COUPLER_LOC):CplrReprocCalc")
 }
 
-record(calcout, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrReprocCalc") {
+record(calcout, "$(COUPLER_LOC):CplrReprocCalc")
+{
   field(SCAN, "Passive")
   field(CALC, "A")
-  field(INPA, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrReady")
-  field(INPB, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrReprocCalc.VAL")
-  field(OUT,  "$(S)_$(SS):$(DVC)$(N)$(DI):CplrReprocFout.SELN")
-  field(FLNK, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrReprocFout")
+  field(INPA, "$(COUPLER_LOC):CplrReady")
+  field(INPB, "$(COUPLER_LOC):CplrReprocCalc.VAL")
+  field(OUT,  "$(COUPLER_LOC):CplrReprocFout.SELN")
+  field(FLNK, "$(COUPLER_LOC):CplrReprocFout")
   field(OCAL, "((A=1)&&(B#1))?1:0")
   field(VAL,  "1")
   field(DESC, "Calc reprocess")
@@ -101,23 +112,25 @@ record(calcout, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrReprocCalc") {
   field(PINI, "NO")
 }
 
-record(fanout, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrReprocFout") {
+record(fanout, "$(COUPLER_LOC):CplrReprocFout")
+{
   field(DESC, "FANOUT Reproc")
   field(SCAN, "Passive")
   field(SELM, "Mask")
-  field(LNK1, "$(S)_$(SS):$(DVC)$(N)$(DI):OutputReprocEvt")
+  field(LNK1, "$(COUPLER_LOC):OutputReprocEvt")
   field(PINI, "NO")
   field(SELN, "")
 }
 
-record(event, "$(S)_$(SS):$(DVC)$(N)$(DI):OutputReprocEvt")
+record(event, "$(COUPLER_LOC):OutputReprocEvt")
 {
   field(DESC, "Post event to reproc")
   field(SCAN, "Passive")
   field(VAL,  "$(REPROCEVT)")
 }
 
-record(mbbi, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrLinkStat") {
+record(mbbi, "$(COUPLER_LOC):CplrLinkStat")
+{
   field(DESC, "Coupler MBT Link Stat")
   field(SCAN, "1 second")
   field(PINI, "YES")
@@ -136,7 +149,8 @@ record(mbbi, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrLinkStat") {
   field(UNSV, "INVALID")
 }
 
-record(stringin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrName") {
+record(stringin, "$(COUPLER_LOC):CplrName")
+{
   field(DESC, "Name of Coupler")
   field(SCAN, "Passive")
   field(PINI, "YES")
@@ -144,7 +158,8 @@ record(stringin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrName") {
   field(INP,  "@$(COUPLER):0:CPLRNAME")
 }
 
-record(stringin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrIPAddr") {
+record(stringin, "$(COUPLER_LOC):CplrIPAddr")
+{
   field(DESC, "IPAddr of Coupler")
   field(SCAN, "Passive")
   field(PINI, "YES")
@@ -152,7 +167,8 @@ record(stringin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrIPAddr") {
   field(INP,  "@$(COUPLER):0:CPLRIP")
 }
 
-record(stringin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrTLostConn") {
+record(stringin, "$(COUPLER_LOC):CplrTLostConn")
+{
   field(DESC, "Time of lost connection")
   field(SCAN, "10 second")
   field(PINI, "YES")
@@ -160,7 +176,8 @@ record(stringin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrTLostConn") {
   field(INP,  "@$(COUPLER):0:TLSTCONN")
 }
 
-record(stringin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrTSetConn") {
+record(stringin, "$(COUPLER_LOC):CplrTSetConn")
+{
   field(DESC, "Time of set connection")
   field(SCAN, "10 second")
   field(PINI, "YES")
@@ -168,7 +185,8 @@ record(stringin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrTSetConn") {
   field(INP,  "@$(COUPLER):0:TSETCONN")
 }
 
-record(stringin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrTLastTry") {
+record(stringin, "$(COUPLER_LOC):CplrTLastTry")
+{
   field(DESC, "Time of last try connect")
   field(SCAN, "10 second")
   field(PINI, "YES")
@@ -176,7 +194,8 @@ record(stringin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrTLastTry") {
   field(INP,  "@$(COUPLER):0:TLASTTRY")
 }
 
-record(stringin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrID") {
+record(stringin, "$(COUPLER_LOC):CplrID")
+{
   field(DESC, "ID of Coupler")
   field(SCAN, "10 second")
   field(PINI, "YES")
@@ -184,7 +203,8 @@ record(stringin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrID") {
   field(INP,  "@$(COUPLER):0:CPLRID")
 }
 
-record(stringin, "$(S)_$(SS):$(DVC)$(N)$(DI):CplrOpThrdName") {
+record(stringin, "$(COUPLER_LOC):CplrOpThrdName")
+{
   field(DESC, "Op Thread Name of Coupler")
   field(SCAN, "Passive")
   field(PINI, "YES")

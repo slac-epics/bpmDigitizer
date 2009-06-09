@@ -68,7 +68,7 @@ x 18
 y 375
 w 308
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrTLostConn"
+controlPv "$(COUPLER_LOC):CplrTLostConn"
 fgColor index 25
 fgAlarm
 bgColor index 5
@@ -129,7 +129,7 @@ x 44
 y 64
 w 196
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrName"
+controlPv "$(COUPLER_LOC):CplrName"
 fgColor index 25
 fgAlarm
 bgColor index 5
@@ -190,7 +190,7 @@ x 342
 y 64
 w 196
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrIPAddr"
+controlPv "$(COUPLER_LOC):CplrIPAddr"
 fgColor index 25
 fgAlarm
 bgColor index 5
@@ -251,7 +251,7 @@ x 639
 y 64
 w 196
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrID"
+controlPv "$(COUPLER_LOC):CplrID"
 fgColor index 25
 fgAlarm
 bgColor index 5
@@ -333,7 +333,7 @@ x 18
 y 448
 w 308
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrTLastTry"
+controlPv "$(COUPLER_LOC):CplrTLastTry"
 fgColor index 25
 fgAlarm
 bgColor index 5
@@ -394,7 +394,7 @@ x 18
 y 521
 w 308
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrTSetConn"
+controlPv "$(COUPLER_LOC):CplrTSetConn"
 fgColor index 25
 fgAlarm
 bgColor index 5
@@ -518,7 +518,7 @@ x 239
 y 237
 w 196
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrDinBits"
+controlPv "$(COUPLER_LOC):CplrDinBits"
 fgColor index 25
 fgAlarm
 bgColor index 5
@@ -541,7 +541,7 @@ x 239
 y 199
 w 196
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrDoutBits"
+controlPv "$(COUPLER_LOC):CplrDoutBits"
 fgColor index 25
 fgAlarm
 bgColor index 5
@@ -564,7 +564,7 @@ x 239
 y 160
 w 196
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrCinWds"
+controlPv "$(COUPLER_LOC):CplrCinWds"
 fgColor index 25
 fgAlarm
 bgColor index 5
@@ -587,7 +587,7 @@ x 239
 y 121
 w 196
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrCoutWds"
+controlPv "$(COUPLER_LOC):CplrCoutWds"
 fgColor index 25
 fgAlarm
 bgColor index 5
@@ -691,7 +691,7 @@ x 639
 y 233
 w 196
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrNofSigs"
+controlPv "$(COUPLER_LOC):CplrNofSigs"
 fgColor index 25
 fgAlarm
 bgColor index 5
@@ -714,7 +714,7 @@ x 639
 y 171
 w 196
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrOpThrdID"
+controlPv "$(COUPLER_LOC):CplrOpThrdID"
 displayMode "hex"
 fgColor index 25
 fgAlarm
@@ -738,7 +738,7 @@ x 639
 y 119
 w 196
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrOpThrdName"
+controlPv "$(COUPLER_LOC):CplrOpThrdName"
 fgColor index 25
 fgAlarm
 bgColor index 5
@@ -778,7 +778,7 @@ x 370
 y 447
 w 196
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrNofExcp"
+controlPv "$(COUPLER_LOC):CplrNofExcp"
 fgColor index 25
 fgAlarm
 bgColor index 5
@@ -839,7 +839,7 @@ x 370
 y 375
 w 196
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrNofConn"
+controlPv "$(COUPLER_LOC):CplrNofConn"
 fgColor index 25
 fgAlarm
 bgColor index 5
@@ -921,7 +921,7 @@ x 370
 y 521
 w 196
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrNofPkts"
+controlPv "$(COUPLER_LOC):CplrNofPkts"
 fgColor index 25
 fgAlarm
 bgColor index 5
@@ -982,7 +982,7 @@ x 641
 y 375
 w 196
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrLinkStat"
+controlPv "$(COUPLER_LOC):CplrLinkStat"
 fgColor index 25
 fgAlarm
 bgColor index 5
@@ -1044,7 +1044,7 @@ x 642
 y 446
 w 196
 h 36
-controlPv "$(S)_$(SS):$(DVC)$(N)$(DI):CplrReady"
+controlPv "$(COUPLER_LOC):CplrReady"
 fgColor index 25
 fgAlarm
 bgColor index 5

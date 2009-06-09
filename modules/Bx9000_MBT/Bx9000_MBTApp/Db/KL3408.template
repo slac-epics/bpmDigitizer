@@ -1,5 +1,6 @@
-record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG1)") {
-  field(DESC, "Analog Channel1 Readback")
+record(ai, "$(SIG1)")
+{
+  field(DESC, "$(SIG1.DESC)")
   field(SCAN, "$(SIG1.SCAN)")
   field(DTYP, "Bx9000_KL3408")
   field(INP,  "@$(COUPLER):$(SLOT):R_ANA_IN_1")
@@ -24,8 +25,9 @@ record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG1)") {
   field(LINR, "LINEAR")
 }
 
-record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG2)") {
-  field(DESC, "Analog Channel2 Readback")
+record(ai, "$(SIG2)")
+{
+  field(DESC, "$(SIG2.DESC)")
   field(SCAN, "$(SIG2.SCAN)")
   field(DTYP, "Bx9000_KL3408")
   field(INP,  "@$(COUPLER):$(SLOT):R_ANA_IN_2")
@@ -50,8 +52,9 @@ record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG2)") {
   field(LINR, "LINEAR")
 }
 
-record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG3)") {
-  field(DESC, "Analog Channel3 Readback")
+record(ai, "$(SIG3)")
+{
+  field(DESC, "$(SIG3.DESC)")
   field(SCAN, "$(SIG3.SCAN)")
   field(DTYP, "Bx9000_KL3408")
   field(INP,  "@$(COUPLER):$(SLOT):R_ANA_IN_3")
@@ -76,8 +79,9 @@ record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG3)") {
   field(LINR, "LINEAR")
 }
 
-record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG4)") {
-  field(DESC, "Analog Channel4 Readback")
+record(ai, "$(SIG4)")
+{
+  field(DESC, "$(SIG4.DESC)")
   field(SCAN, "$(SIG4.SCAN)")
   field(DTYP, "Bx9000_KL3408")
   field(INP,  "@$(COUPLER):$(SLOT):R_ANA_IN_4")
@@ -102,8 +106,9 @@ record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG4)") {
   field(LINR, "LINEAR")
 }
 
-record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG5)") {
-  field(DESC, "Analog Channel5 Readback")
+record(ai, "$(SIG5)")
+{
+  field(DESC, "$(SIG5.DESC)")
   field(SCAN, "$(SIG5.SCAN)")
   field(DTYP, "Bx9000_KL3408")
   field(INP,  "@$(COUPLER):$(SLOT):R_ANA_IN_5")
@@ -128,8 +133,9 @@ record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG5)") {
   field(LINR, "LINEAR")
 }
 
-record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG6)") {
-  field(DESC, "Analog Channel6 Readback")
+record(ai, "$(SIG6)")
+{
+  field(DESC, "$(SIG6.DESC)")
   field(SCAN, "$(SIG6.SCAN)")
   field(DTYP, "Bx9000_KL3408")
   field(INP,  "@$(COUPLER):$(SLOT):R_ANA_IN_6")
@@ -154,8 +160,9 @@ record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG6)") {
   field(LINR, "LINEAR")
 }
 
-record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG7)") {
-  field(DESC, "Analog Channel7 Readback")
+record(ai, "$(SIG7)")
+{
+  field(DESC, "$(SIG7.DESC)")
   field(SCAN, "$(SIG7.SCAN)")
   field(DTYP, "Bx9000_KL3408")
   field(INP,  "@$(COUPLER):$(SLOT):R_ANA_IN_7")
@@ -180,8 +187,9 @@ record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG7)") {
   field(LINR, "LINEAR")
 }
 
-record(ai, "$(S)_$(SS):$(DVC)$(N)$(DI):$(SIG8)") {
-  field(DESC, "Analog Channel8 Readback")
+record(ai, "$(SIG8)")
+{
+  field(DESC, "$(SIG8.DESC)")
   field(SCAN, "$(SIG8.SCAN)")
   field(DTYP, "Bx9000_KL3408")
   field(INP,  "@$(COUPLER):$(SLOT):R_ANA_IN_8")
