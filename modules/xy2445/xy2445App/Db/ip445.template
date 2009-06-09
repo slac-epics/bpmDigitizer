@@ -1,4 +1,5 @@
-record(bo, $(RECORDNAME) ) {
+record(bo, $(RECORDNAME) )
+{
   field(DESC, "$(DESC)")
   field(DTYP, "ACROMAG-IP445")
   field(OUT, "@$(CARD) P$(PORT) B$(CH)")

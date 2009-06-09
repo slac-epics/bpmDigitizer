@@ -1,10 +1,13 @@
-record(bi, $(RECORDNAME) ) {
+record(bi, $(RECORDNAME) )
+{
   field(DESC, "$(DESC)")
   field(SCAN, "$(SCAN)")
   field(DTYP, "XYCOM-2440")
   field(INP, "@$(CARD) P$(PORT) B$(CH)")
   field(ZNAM, "$(ZNAM)")
   field(ONAM, "$(ONAM)")
+  field(ZSV, "$(ZSV)")
+  field(OSV, "$(OSV)")
 }
 
 
