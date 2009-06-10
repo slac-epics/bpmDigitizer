@@ -5,6 +5,7 @@ record(bo, $(RECORDNAME) )
   field(OUT, "@$(CARD) P$(PORT) B$(CH)")
   field(ZNAM, "$(ZNAM)")
   field(ONAM, "$(ONAM)")
+  field(PINI, "YES")
 }
 
 
