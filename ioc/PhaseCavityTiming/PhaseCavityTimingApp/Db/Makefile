@@ -11,14 +11,7 @@ include $(TOP)/configure/CONFIG
 # Create and install (or just install) into <top>/db
 # databases, templates, substitutions like this
 DB += vmeDigiApp.db
-#DB += IP231.template
-#DB += IP330.template
-#DB += ip440.template
-#DB += ip445.template
 DB += rfCavity.db
-#DB += Bx9000Info.template
-#DB += Bx9000InstalledBTs.template
-#DB += KL3314.template
 
 # Generate db files from substitutions
 DB += IP231.db
@@ -28,6 +21,8 @@ DB += ip445.db
 DB += phaseCavityevr.db
 DB += Bx9000.db
 DB += KL3314.db
+
+DB += iocAdmin.db
 
 #----------------------------------------------------
 # If <anyname>.db template is not named <anyname>*.template add

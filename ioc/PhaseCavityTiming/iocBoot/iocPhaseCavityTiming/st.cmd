@@ -13,6 +13,9 @@ ld( "bin/RTEMS-beatnik/PhaseCavityTiming.obj" )
 # the client requests it.
 setenv("EPICS_CA_MAX_ARRAY_BYTES", "2000000", 1)
 
+epicsEnvSet( "ENGINEER", "Bruce Hill" )
+epicsEnvSet( "LOCATION", "UND:R02:IOC:19" )
+
 # Silence BSP warnings
 bspExtVerbosity = 0
 
@@ -155,6 +158,11 @@ dbLoadRecords( "db/vmeDigiApp.db", "digi=UND:R02:IOC:19:dig1,card=1,nelm=4096" )
 dbLoadRecords( "db/phaseCavityevr.db", "IOC=UND:R02:IOC:19,EVR=UND:R02:EVR:19" )
 dbLoadRecords( "db/Bx9000.db", "COUPLER=beck-01,COUPLER_LOC=UND:R01:BHC:05" )
 dbLoadRecords( "db/KL3314.db", "COUPLER=beck-01,COUPLER_LOC=UND:R01:BHC:05" )
+dbLoadRecords( "db/iocAdmin.db", "IOC=UND:R02:IOC:19" )
+
+# Setup access control
+#asSetFilename( "/reg/lab2/home/bhill/wa2/epics/modules/iocAdmin/db/baseSecurity.acf" )
+#asSetSubstitutions( "IOC=UND:R02:IOC:19" )
 
 # Load the gdb stub and start it
 ld( "/boot/rtems/rtems-4.7.1-p2/target/ssrlApps/powerpc-rtems/beatnik/bin/rtems-gdb-stub.obj" )

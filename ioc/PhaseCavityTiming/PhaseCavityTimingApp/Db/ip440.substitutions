@@ -22,8 +22,8 @@ file ip440.template
 {
 	pattern
 	{ RECORDNAME,						  PORT,	CH,	DESC,					SCAN,		ZNAM  , ONAM,	ZSV,		OSV		}
-	{ "$(IOC):$(CARD):port$(PORT):in$(CH)", 0,	0,	"RF Digitizer Status",	".1 second", "OK"  , "Bad",	"NO_ALARM",	"MAJOR" }
-	{ "$(IOC):$(CARD):port$(PORT):in$(CH)", 0,	1,	"Port $(PORT) In$(CH)", ".1 second", "Off" , "On",	"NO_ALARM",	"NO_ALARM" }
+	{ "$(IOC):$(CARD):port$(PORT):in$(CH)", 0,	0,	"RF Digitizer 1 Status", ".1 second", "OK" , "Bad",	"NO_ALARM",	"MAJOR" }
+	{ "$(IOC):$(CARD):port$(PORT):in$(CH)", 0,	1,	"RF Digitizer 2 Status", ".1 second", "OK" , "Bad",	"NO_ALARM",	"MAJOR" }
 	{ "$(IOC):$(CARD):port$(PORT):in$(CH)", 0,	2,	"Port $(PORT) In$(CH)", ".1 second", "Off" , "On",	"NO_ALARM",	"NO_ALARM" }
 	{ "$(IOC):$(CARD):port$(PORT):in$(CH)", 0,	3,	"Port $(PORT) In$(CH)", ".1 second", "Off" , "On",	"NO_ALARM",	"NO_ALARM" }
 #	{ "$(IOC):$(CARD):port$(PORT):in$(CH)", 0,	4,	"Port $(PORT) In$(CH)", ".1 second", "Off" , "On",	"NO_ALARM",	"NO_ALARM" }

@@ -24,6 +24,7 @@ PhaseCavityTiming_DBD += evrSupport.dbd
 PhaseCavityTiming_DBD += devMrfEr.dbd
 PhaseCavityTiming_DBD += dbRestore.dbd
 PhaseCavityTiming_DBD += Bx9000_MBT.dbd
+PhaseCavityTiming_DBD += iocAdmin.dbd
 
 # <name>_registerRecordDeviceDriver.cpp will be created from <name>.dbd
 PhaseCavityTiming_SRCS += PhaseCavityTiming_registerRecordDeviceDriver.cpp
@@ -32,8 +33,6 @@ PhaseCavityTiming_SRCS_DEFAULT += multicastTestBld.cpp
 PhaseCavityTiming_SRCS_vxWorks += -nil-
 
 #add a definition for each support application used by this application
-#PhaseCavityTiming_LIBS += xxx
-
 PhaseCavityTiming_LIBS += multicastBLD
 PhaseCavityTiming_LIBS += IP231
 PhaseCavityTiming_LIBS += IP330
@@ -46,6 +45,7 @@ PhaseCavityTiming_LIBS += mrfVme64x
 PhaseCavityTiming_LIBS += restore
 PhaseCavityTiming_LIBS += Bx9000_MBT
 PhaseCavityTiming_LIBS += ModBusTCPClnt
+PhaseCavityTiming_LIBS += devIocStats
 PhaseCavityTiming_LIBS_RTEMS += devBusMapped
 PhaseCavityTiming_LIBS_RTEMS += vmeDigiDevSup
 PhaseCavityTiming_LIBS_RTEMS += vmeDigi
