@@ -221,7 +221,7 @@ STATIC long scalar_restore(int pass, DBENTRY *pdbentry, char *PVname, char *valu
 
 		status = dbPutString(pdbentry, value_string);
 		if (save_restoreDebug >= 15) {
-			errlogPrintf("dbrestore:scalar_restore: dbPutString() returns %ld:", status);
+			errlogPrintf("dbrestore:scalar_restore: dbPutString() returns %ld:\n", status);
 			errMessage(status, " ");
 		}
 		if ((s = dbVerify(pdbentry, value_string))) {
@@ -235,7 +235,7 @@ STATIC long scalar_restore(int pass, DBENTRY *pdbentry, char *PVname, char *valu
 		if (pass == 0) {
 			status = dbPutString(pdbentry, value_string);
 			if (save_restoreDebug >= 15) {
-				errlogPrintf("dbrestore:scalar_restore: dbPutString() returns %ld:", status);
+				errlogPrintf("dbrestore:scalar_restore: dbPutString() returns %ld:\n", status);
 				errMessage(status, " ");
 			}
 			if ((s = dbVerify(pdbentry, value_string))) {
@@ -251,7 +251,7 @@ STATIC long scalar_restore(int pass, DBENTRY *pdbentry, char *PVname, char *valu
 		n = (int)atol(value_string);
 		status = dbPutMenuIndex(pdbentry, n);
 		if (save_restoreDebug >= 15) {
-			errlogPrintf("dbrestore:scalar_restore: dbPutMenuIndex() returns %ld:", status);
+			errlogPrintf("dbrestore:scalar_restore: dbPutMenuIndex() returns %ld:\n", status);
 			errMessage(status, " ");
 		}
 		break;
@@ -726,7 +726,7 @@ int reboot_restore(char *filename, initHookState init_state)
 	errlogPrintf("*** restoring from '%s' at initHookState %d ***\n",
 		fname, (int)init_state);
 	if ((inp_fd = fopen_and_check(fname, &status)) == NULL) {
-		errlogPrintf("save_restore: Can't open save file.");
+		errlogPrintf("save_restore: Can't open save file.\n");
 		if (pStatusVal) *pStatusVal = SR_STATUS_FAIL;
 		if (statusStr) strcpy(statusStr, "Can't open save file.");
 		return(ERROR);
@@ -1066,7 +1066,7 @@ FILE *fopen_and_check(const char *fname, long *status)
 			backup_sequence_num = 0;
 	}
 
-	errlogPrintf("save_restore: Can't find a file to restore from...");
+	errlogPrintf("save_restore: Can't find a file to restore from...\n");
 	errlogPrintf("save_restore: ...last tried '%s'. I give up.\n", file);
 	errlogPrintf("save_restore: **********************************\n\n");
 	return(0);

@@ -1,56 +1,56 @@
-record(ao, "$(P)SR_ao") {
+record(ao, "$(IOC):SR_ao") {
 	field(DTYP,"Soft Channel")
 }
-record(bo, "$(P)SR_bo") {
+record(bo, "$(IOC):SR_bo") {
 	field(DTYP,"Soft Channel")
 }
-record(bi, "$(P)SR_bi") {
+record(bi, "$(IOC):SR_bi") {
 	field(DTYP,"Soft Channel")
 }
-record(scaler, "$(P)SR_scaler") {
+record(scaler, "$(IOC):SR_scaler") {
 }
 # arrays
-record(waveform, "$(P)SR_char_array") {
+record(waveform, "$(IOC):SR_char_array") {
   field(NELM, "$(N)")
   field(FTVL, "CHAR")
 }
 
-record(waveform, "$(P)SR_double_array") {
+record(waveform, "$(IOC):SR_double_array") {
   field(NELM, "$(N)")
   field(FTVL, "DOUBLE")
 }
 
-record(waveform, "$(P)SR_float_array") {
+record(waveform, "$(IOC):SR_float_array") {
   field(NELM, "$(N)")
   field(FTVL, "FLOAT")
 }
 
-record(waveform, "$(P)SR_long_array") {
+record(waveform, "$(IOC):SR_long_array") {
   field(NELM, "$(N)")
   field(FTVL, "LONG")
 }
 
-record(waveform, "$(P)SR_short_array") {
+record(waveform, "$(IOC):SR_short_array") {
   field(NELM, "$(N)")
   field(FTVL, "SHORT")
 }
 
-record(waveform, "$(P)SR_string_array") {
+record(waveform, "$(IOC):SR_string_array") {
   field(NELM, "$(N)")
   field(FTVL, "STRING")
 }
 
-record(waveform, "$(P)SR_uchar_array") {
+record(waveform, "$(IOC):SR_uchar_array") {
   field(NELM, "$(N)")
   field(FTVL, "UCHAR")
 }
 
-record(waveform, "$(P)SR_ulong_array") {
+record(waveform, "$(IOC):SR_ulong_array") {
   field(NELM, "$(N)")
   field(FTVL, "ULONG")
 }
 
-record(waveform, "$(P)SR_ushort_array") {
+record(waveform, "$(IOC):SR_ushort_array") {
   field(NELM, "$(N)")
   field(FTVL, "USHORT")
 }

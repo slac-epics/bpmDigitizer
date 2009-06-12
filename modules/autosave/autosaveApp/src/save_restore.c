@@ -350,7 +350,7 @@ STATIC int lockList() {
 	epicsMutexLock(sr_mutex);
 	if (!listLock) listLock = caller_owns_lock = 1;
 	epicsMutexUnlock(sr_mutex);
-	if (save_restoreDebug) printf("lockList: listLock=%d\n", listLock);
+	if (save_restoreDebug > 1) printf("lockList: listLock=%d\n", listLock);
 	return(caller_owns_lock);
 }
 
@@ -358,7 +358,7 @@ STATIC void unlockList() {
 	epicsMutexLock(sr_mutex);
 	listLock = 0;
 	epicsMutexUnlock(sr_mutex);
-	if (save_restoreDebug) printf("unlockList: listLock=%d\n", listLock);
+	if (save_restoreDebug > 1) printf("unlockList: listLock=%d\n", listLock);
 }
 
 STATIC int waitForListLock(double secondsToWait) {
@@ -960,7 +960,7 @@ STATIC int get_channel_values(struct chlist *plist)
 		}
 	}
 	if (ca_pend_io(MIN(10.0, .1*num_channels)) != ECA_NORMAL) {
-		errlogPrintf("save_restore:get_channel_values: not all gets completed");
+		errlogPrintf("save_restore:get_channel_values: not all gets completed\n");
 		not_connected++;
 	}
 
@@ -1009,6 +1009,10 @@ STATIC int write_it(char *filename, struct chlist *plist)
 			strncpy(SR_recentlyStr, "Too many I/O errors",(STRING_LEN-1));
 		}
 		return(ERROR);
+	}
+	else if (save_restoreDebug > 1)
+	{
+		printf("save_restore:write_it - opened file '%s' [%s]\n", filename, datetime);
 	}
 
 	/* write header info */
@@ -1433,7 +1437,7 @@ STATIC int create_data_set(
 	/* initialize save_restore routines */
 	if (!save_restore_init) {
 		if ((sr_mutex = epicsMutexCreate()) == 0) {
-			errlogPrintf("save_restore:create_data_set: could not create list header mutex");
+			errlogPrintf("save_restore:create_data_set: could not create list header mutex\n");
 			return(ERROR);
 		}
 		if ((sem_remove = epicsEventCreate(epicsEventEmpty)) == 0) {
@@ -1448,7 +1452,7 @@ STATIC int create_data_set(
 			epicsThreadGetStackSize(epicsThreadStackBig),
 			(EPICSTHREADFUNC)save_restore, 0);
 		if (taskID == NULL) {
-			errlogPrintf("save_restore:create_data_set: could not create save_restore task");
+			errlogPrintf("save_restore:create_data_set: could not create save_restore task\n");
 			return(ERROR);
 		}
 
@@ -1463,7 +1467,7 @@ STATIC int create_data_set(
 	while (plist != 0) {
 		if (!strcmp(plist->reqFile,filename)) {
 			if (plist->save_method & save_method) {
-				errlogPrintf("save_restore:create_data_set: '%s' already in %x mode",filename,save_method);
+				errlogPrintf("save_restore:create_data_set: '%s' already in %x mode\n",filename,save_method);
 				unlockList();
 				return(ERROR);
 			} else {
@@ -1472,7 +1476,7 @@ STATIC int create_data_set(
 					if (trigger_channel) {
 						strcpy(plist->trigger_channel,trigger_channel);
 					} else {
-						errlogPrintf("save_restore:create_data_set: no trigger channel");
+						errlogPrintf("save_restore:create_data_set: no trigger channel\n");
 						unlockList();
 						return(ERROR);
 					}
@@ -1499,7 +1503,7 @@ STATIC int create_data_set(
 
 	/* create a new channel list */
 	if ((plist = (struct chlist *)calloc(1,sizeof (struct chlist))) == (struct chlist *)0) {
-		errlogPrintf("save_restore:create_data_set: channel list calloc failed");
+		errlogPrintf("save_restore:create_data_set: channel list calloc failed\n");
 		return(ERROR);
 	}
 	callbackSetCallback(periodic_save, &plist->periodicCb);
@@ -2009,7 +2013,7 @@ STATIC int do_manual_restore(char *filename, int file_type)
 		inp_fd = fopen(restoreFile, "r");
 	}
 	if (inp_fd == NULL) {
-		errlogPrintf("save_restore:do_manual_restore: Can't open save file.");
+		errlogPrintf("save_restore:do_manual_restore: Can't open save file.\n");
 		strncpy(SR_recentlyStr, "Manual restore failed",(STRING_LEN-1));
 		return(ERROR);
 	}
@@ -2173,7 +2177,7 @@ STATIC int readReqFile(const char *reqFile, struct chlist *plist, char *macrostr
 					ca_put(DBR_STRING, plist->statusStr_chid, &plist->statusStr);
 					ca_flush_io();
 				}
-				errlogPrintf("save_restore:readReqFile: channel calloc failed");
+				errlogPrintf("save_restore:readReqFile: channel calloc failed\n");
 			} else {
 				/* add new element to the list */
 #if BACKWARDS_LIST

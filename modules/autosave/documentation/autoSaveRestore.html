@@ -92,7 +92,7 @@ files in that module are the following:
 <dt>xxx/xxxApp/src/Makefile
 <dd>look for "autosave"
 <dt>xxx/xxxApp/src/xxxCommonInclude.dbd
-<dd>look for "asSupport.dbd"
+<dd>look for "autosaveSupport.dbd"
 <dt>xxx/iocBoot/iocvxWorks/save_restore.cmd
 <dd>the whole file
 <dt>xxx/iocBoot/iocvxWorks/auto_positions.req
@@ -112,13 +112,13 @@ are optional:
 
 <h4>1. Build (required)</h4>
 Build the module and include the resulting library,
-libautosave.a, and database-definition file, asSupport.dbd, in an IOC's
+libautosave.a, and database-definition file, autosaveSupport.dbd, in an IOC's
 build.  For example, add
 <pre>	AUTOSAVE=&lt;path to the autosave module&gt;</pre>
 to xxx/configure/RELEASE, add
 <pre>	xxx_LIBS += autosave</pre>
 to xxxApp/src/Makefile, and add
-<pre>	include "asSupport.dbd"</pre>
+<pre>	include "autosaveSupport.dbd"</pre>
 to iocxxxInclude.dbd.
 
 <h4>2. Write request files (required)</h4>
