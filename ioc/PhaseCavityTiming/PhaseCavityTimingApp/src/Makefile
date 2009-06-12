@@ -22,7 +22,7 @@ PhaseCavityTiming_DBD += Xy2445.dbd
 PhaseCavityTiming_DBD += Xy2440.dbd
 PhaseCavityTiming_DBD += evrSupport.dbd
 PhaseCavityTiming_DBD += devMrfEr.dbd
-PhaseCavityTiming_DBD += dbRestore.dbd
+PhaseCavityTiming_DBD += autosaveSupport.dbd
 PhaseCavityTiming_DBD += Bx9000_MBT.dbd
 PhaseCavityTiming_DBD += iocAdmin.dbd
 
@@ -42,7 +42,7 @@ PhaseCavityTiming_LIBS += evrSupport
 PhaseCavityTiming_LIBS += generalTime
 PhaseCavityTiming_LIBS += devMrfEr
 PhaseCavityTiming_LIBS += mrfVme64x
-PhaseCavityTiming_LIBS += restore
+PhaseCavityTiming_LIBS += autosave
 PhaseCavityTiming_LIBS += Bx9000_MBT
 PhaseCavityTiming_LIBS += ModBusTCPClnt
 PhaseCavityTiming_LIBS += devIocStats

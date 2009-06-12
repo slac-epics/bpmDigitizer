@@ -21,8 +21,22 @@ DB += ip445.db
 DB += phaseCavityevr.db
 DB += Bx9000.db
 DB += KL3314.db
-
 DB += iocAdmin.db
+
+# Nothing to build, just install from autosave/db to PhaseCavityTiming/db
+DB_INSTALLS += $(AUTOSAVE)/db/save_restoreStatus.db
+
+# Specify template dependencies
+# TODO: AddDevGuide.pdf says this should work, but it doesn't.  Fix me.
+Bx9000_DEPENDS			=	Bx9000Info.template Bx9000InstalledBTs.template
+IP231_DEPENDS			=	IP231.template
+IP330_DEPENDS			=	IP330.template
+KL3314_DEPENDS			=	KL3314.template
+iocAdmin_DEPENDS		=	access.db ioc.db iocCluster.db
+ip440_DEPENDS			=	ip440.template
+ip445_DEPENDS			=	ip445.template
+phaseCavityevr_DEPENDS	=	evrWithExtDelays.template evrLabels.template	\
+							evrEventCtrl.template evrEventRate.template
 
 #----------------------------------------------------
 # If <anyname>.db template is not named <anyname>*.template add

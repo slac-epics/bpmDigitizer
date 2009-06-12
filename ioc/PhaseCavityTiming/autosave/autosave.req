@@ -1,0 +1,7 @@
+$(IOC):attenuator1
+$(IOC):attenuator2
+$(IOC):dig1:ARM
+$(IOC):dig1:CLK
+$(IOC):dig1:PGA
+$(IOC):ao0:out0
+$(IOC):ao0:out1

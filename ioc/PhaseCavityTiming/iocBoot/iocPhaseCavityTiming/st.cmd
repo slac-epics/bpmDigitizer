@@ -159,10 +159,19 @@ dbLoadRecords( "db/phaseCavityevr.db", "IOC=UND:R02:IOC:19,EVR=UND:R02:EVR:19" )
 dbLoadRecords( "db/Bx9000.db", "COUPLER=beck-01,COUPLER_LOC=UND:R01:BHC:05" )
 dbLoadRecords( "db/KL3314.db", "COUPLER=beck-01,COUPLER_LOC=UND:R01:BHC:05" )
 dbLoadRecords( "db/iocAdmin.db", "IOC=UND:R02:IOC:19" )
+dbLoadRecords( "db/save_restoreStatus.db", "IOC=UND:R02:IOC:19" )
 
 # Setup access control
-#asSetFilename( "/reg/lab2/home/bhill/wa2/epics/modules/iocAdmin/db/baseSecurity.acf" )
+#asSetFilename( "/home/bhill/wa2/epics/modules/iocAdmin/db/baseSecurity.acf" )
 #asSetSubstitutions( "IOC=UND:R02:IOC:19" )
+
+# Setup autosave
+set_savefile_path( "/home/bhill/iocPhaseCavity/autosave/iocData" )
+set_requestfile_path( "/home/bhill/iocPhaseCavity/autosave" )
+save_restoreSet_IncompleteSetsOk( 1 )
+save_restoreSet_DatedBackupFiles( 1 )
+set_pass0_restoreFile( "autosave.sav" )
+set_pass1_restoreFile( "autosave.sav" )
 
 # Load the gdb stub and start it
 ld( "/boot/rtems/rtems-4.7.1-p2/target/ssrlApps/powerpc-rtems/beatnik/bin/rtems-gdb-stub.obj" )
@@ -187,3 +196,5 @@ mon=rtemsMonitor
 
 iocInit()
 
+# Start autosave backups
+create_monitor_set( "autosave.req", 60, "IOC=UND:R02:IOC:19" )
