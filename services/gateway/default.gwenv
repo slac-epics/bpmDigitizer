@@ -3,7 +3,7 @@
 # It expects iocenv.sh to be sourced and GATEWAY to be defined
 
 # Addresses serviced by this gateway
-CAS_IPADDR=$(dig +short $(hostname).${CAS_SUBNET_NAME} | tail -n 1)
+CAS_IPADDR_LIST=$(dig +short $(hostname).${CAS_SUBNET_NAME} | tail -n 1)
 CAS_PORT=
 CAC_IPADDR=
 CAC_PORT=

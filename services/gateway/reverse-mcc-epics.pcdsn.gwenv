@@ -1,0 +1,16 @@
+# Do not execute directly.
+# This file is part of the EPICS PCDS gateway system
+# It expects iocenv.sh to be sourced and GATEWAY to be defined
+
+# Addresses serviced by this gateway: all the one on this computer, except mcc-epics.pcdsn
+MCCEPICS_IP=$(dig +short $(hostname).mcc-epics.pcdsn | tail -n 1)
+for ip in $(/sbin/ifconfig | grep 'inet addr:' | grep -v "inet addr:${MCCEPICS_IP}" | sed -e 's|^.*inet addr:\([^[:space:]]*\).*$|\1|'); do
+	CAS_IPADDR_LIST="${CAS_IPADDR_LIST} ${ip}"
+done
+CAS_IPADDR_LIST=${CAS_IPADDR_LIST:1}
+CAC_IPADDR=lcls-daemon3
+CAC_PORT=5080
+CAS_PORT=5064
+
+# Re-define PV_PREFIX according to AMO naming conventions:
+PV_PREFIX="NET:MCC:EGW:02"

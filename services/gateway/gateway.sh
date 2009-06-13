@@ -46,7 +46,7 @@ for net in ${LIST}; do
 done
 
 # Basic check of the configuration
-if [ -z "${CAS_IPADDR}" ]; then
+if [ -z "${CAS_IPADDR_LIST}" ]; then
 	echo "ERROR: no CA Server IP for ${CAS_SUBNET_NAME}, must exit."
 	exit 5
 fi
@@ -62,12 +62,18 @@ GATEWAY_IPS=${GATEWAY_IPS:1}
 # This gateway should listen to all clients except the ones on the subnet
 # it is running for. To figure that out we use the broadcast addresses 
 # (Note that won't work on hosts with Bcast set to 255.255.255.255)
-CAC_MASK=
-for bcast in $(/sbin/ifconfig | grep -E 'inet addr:.*Bcast:' | grep -v "inet addr:${CAS_IPADDR}" | sed -e 's|^.*Bcast:\([^[:space:]]*\).*$|\1|'); do
-	CAC_MASK="${CAC_MASK} ${bcast}"
-done
-CAC_MASK=${CAC_MASK:1}
-
+if [ -z "${CAC_IPADDR}" ]; then
+	CMD="/sbin/ifconfig | grep -E 'inet addr:.*Bcast:' "
+	for ip in ${CAS_IPADDR_LIST}; do
+		CMD="${CMD} | grep -v \"inet addr:${ip}\""
+	done
+	CMD="${CMD} | sed -e 's|^.*Bcast:\([^[:space:]]*\).*$|\1|'"
+	CAC_IPADDR=
+	for bcast in $(eval ${CMD}); do
+		CAC_IPADDR="${CAC_IPADDR} ${bcast}"
+	done
+	CAC_IPADDR=${CAC_IPADDR:1}
+fi
 
 case $1 in
 	"start")
@@ -98,12 +104,11 @@ case $1 in
 		PARAMS="${PARAMS} -access ${CFG_DIR}/${CAS_SUBNET_NAME}.access"
 		PARAMS="${PARAMS} -command ${CMD_FILE}"
 		PARAMS="${PARAMS} -home ${HOME_DIR}"
-		PARAMS="${PARAMS} -sip ${CAS_IPADDR}"
+		export EPICS_CAS_INTF_ADDR_LIST="${CAS_IPADDR_LIST}"
+		export EPICS_CA_ADDR_LIST="${CAC_IPADDR}"
+		export EPICS_CA_AUTO_ADDR_LIST=NO
 		if [ -n "${CAS_PORT}" ]; then
 			PARAMS="${PARAMS} -sport ${CAS_PORT}"
-		fi
-		if [ -n "${CAC_IPADDR}" ]; then
-			PARAMS="${PARAMS} -cip ${CAC_IPADDR}"
 		fi
 		if [ -n "${CAC_PORT}" ]; then
 			PARAMS="${PARAMS} -cport ${CAC_PORT}"
@@ -129,10 +134,6 @@ case $1 in
 		fi
 		if [ -n "${GATEWAY_IPS}" ]; then
 			export EPICS_CAS_IGNORE_ADDR_LIST="${GATEWAY_IPS}"
-		fi
-		if [ -n "${CAC_MASK}" ]; then
-			export EPICS_CA_ADDR_LIST="${CAC_MASK}"
-			export EPICS_CA_AUTO_ADDR_LIST=NO
 		fi
 		PARAMS="${PARAMS} -log ${LOG_FILE}"
 		PARAMS="${PARAMS} -server"
@@ -164,6 +165,18 @@ case $1 in
 				echo "gateway not running"
 				exit 3
 			fi
+		else
+			echo "gateway not running"
+			exit 3
+		fi
+		;;
+	"log")
+		if [ -e ${LOG_FILE} ]; then
+			if [ ! -e ${HOME_DIR}/gateway.killer ]; then
+				echo "WARNING: this looks like an old log file. Press Enter to continue."
+				read
+			fi
+			cat ${LOG_FILE}
 		else
 			echo "gateway not running"
 			exit 3
