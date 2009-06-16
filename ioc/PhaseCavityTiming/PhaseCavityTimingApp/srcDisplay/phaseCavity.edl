@@ -3,8 +3,8 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 5
-y 54
+x 18
+y 100
 w 1036
 h 690
 font "helvetica-medium-r-14.0"
@@ -311,147 +311,6 @@ value {
 }
 endObjectProperties
 
-# (Text Monitor)
-object activeXTextDspClass:noedit
-beginObjectProperties
-major 4
-minor 2
-release 0
-x 910
-y 173
-w 98
-h 16
-controlPv "$(IOC):dig1:ASTA"
-format "hex"
-font "helvetica-bold-i-14.0"
-fontAlign "center"
-fgColor index 19
-bgColor index 5
-useDisplayBg
-autoHeight
-limitsFromDb
-nullColor index 0
-smartRefresh
-useHexPrefix
-newPos
-objType "monitors"
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 814
-y 172
-w 76
-h 16
-font "helvetica-bold-r-14.0"
-fgColor index 14
-bgColor index 0
-useDisplayBg
-value {
-  "Acq Status"
-}
-autoSize
-endObjectProperties
-
-# (Menu Button)
-object activeMenuButtonClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 885
-y 137
-w 125
-h 24
-fgColor index 26
-bgColor index 6
-inconsistentColor index 14
-topShadowColor index 2
-botShadowColor index 11
-controlPv "$(IOC):dig1:PGA"
-font "helvetica-bold-i-12.0"
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 814
-y 139
-w 45
-h 16
-font "helvetica-bold-r-14.0"
-fgColor index 14
-bgColor index 0
-useDisplayBg
-value {
-  "Range"
-}
-autoSize
-endObjectProperties
-
-# (Group)
-object activeGroupClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 814
-y 106
-w 194
-h 24
-
-beginGroup
-
-# (Menu Button)
-object activeMenuButtonClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 885
-y 106
-w 123
-h 24
-fgColor index 26
-bgColor index 6
-inconsistentColor index 14
-topShadowColor index 2
-botShadowColor index 11
-controlPv "$(IOC):dig1:CLK"
-font "helvetica-bold-i-12.0"
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 814
-y 110
-w 40
-h 16
-font "helvetica-bold-r-14.0"
-fgColor index 14
-bgColor index 0
-useDisplayBg
-value {
-  "Clock"
-}
-autoSize
-endObjectProperties
-
-endGroup
-
-endObjectProperties
-
 # (Static Text)
 object activeXTextClass
 beginObjectProperties
@@ -459,7 +318,7 @@ major 4
 minor 1
 release 0
 x 872
-y 54
+y 52
 w 65
 h 16
 font "helvetica-bold-i-14.0"
@@ -573,7 +432,7 @@ x 489
 y 130
 w 86
 h 16
-controlPv "$(IOC):di0:port0:in1"
+controlPv "$(IOC):di0:port1:in0"
 format "string"
 font "helvetica-bold-r-14.0"
 fontAlign "center"
@@ -1118,7 +977,7 @@ ySigned {
   0 1
 }
 plotColor {
-  0 index 21
+  0 index 19
 }
 endObjectProperties
 
@@ -1167,7 +1026,7 @@ ySigned {
   0 525978256
 }
 plotColor {
-  0 index 21
+  0 index 19
 }
 endObjectProperties
 
@@ -1414,18 +1273,31 @@ newPos
 objType "monitors"
 endObjectProperties
 
-# (Group)
-object activeGroupClass
+# (Text Monitor)
+object activeXTextDspClass:noedit
 beginObjectProperties
 major 4
-minor 0
+minor 2
 release 0
-x 814
-y 75
-w 194
-h 24
-
-beginGroup
+x 910
+y 176
+w 98
+h 16
+controlPv "UND:R02:EVR:19:LINK"
+font "helvetica-bold-r-14.0"
+fontAlign "center"
+fgColor index 19
+fgAlarm
+bgColor index 0
+useDisplayBg
+autoHeight
+limitsFromDb
+nullColor index 0
+smartRefresh
+useHexPrefix
+newPos
+objType "monitors"
+endObjectProperties
 
 # (Static Text)
 object activeXTextClass
@@ -1434,7 +1306,153 @@ major 4
 minor 1
 release 0
 x 814
-y 79
+y 176
+w 63
+h 16
+font "helvetica-bold-r-14.0"
+fontAlign "center"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "EVR Link"
+}
+autoSize
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 2
+release 0
+x 910
+y 157
+w 98
+h 16
+controlPv "$(IOC):dig1:ASTA"
+format "hex"
+font "helvetica-bold-i-14.0"
+fontAlign "center"
+fgColor index 19
+fgAlarm
+bgColor index 5
+useDisplayBg
+autoHeight
+limitsFromDb
+nullColor index 0
+smartRefresh
+useHexPrefix
+newPos
+objType "monitors"
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 814
+y 157
+w 76
+h 16
+font "helvetica-bold-r-14.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "Acq Status"
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 814
+y 134
+w 45
+h 16
+font "helvetica-bold-r-14.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "Range"
+}
+autoSize
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 884
+y 129
+w 124
+h 24
+fgColor index 26
+bgColor index 6
+inconsistentColor index 14
+topShadowColor index 2
+botShadowColor index 11
+controlPv "$(IOC):dig1:PGA"
+font "helvetica-bold-i-12.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 885
+y 101
+w 123
+h 24
+fgColor index 26
+bgColor index 6
+inconsistentColor index 14
+topShadowColor index 2
+botShadowColor index 11
+controlPv "$(IOC):dig1:CLK"
+font "helvetica-bold-i-12.0"
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 814
+y 105
+w 40
+h 16
+font "helvetica-bold-r-14.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "Clock"
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 814
+y 77
 w 50
 h 16
 font "helvetica-bold-r-14.0"
@@ -1454,7 +1472,7 @@ major 4
 minor 0
 release 0
 x 886
-y 75
+y 73
 w 122
 h 24
 fgColor index 26
@@ -1464,9 +1482,5 @@ topShadowColor index 2
 botShadowColor index 11
 controlPv "$(IOC):dig1:ARM"
 font "helvetica-bold-i-12.0"
-endObjectProperties
-
-endGroup
-
 endObjectProperties
 

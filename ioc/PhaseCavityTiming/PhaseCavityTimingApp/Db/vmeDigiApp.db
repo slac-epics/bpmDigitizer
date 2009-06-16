@@ -44,6 +44,8 @@ record(longin, "$(digi):ASTA")
 	field(INP,  "#C0S0@vmeDigi$(card)+0x7fa3a,be16")
 	field(PINI, "YES")
 	field(FLNK, "$(digi):ISTA")
+	field(LOLO,  "0" )
+	field(LLSV,  "MAJOR" )
 }
 
 

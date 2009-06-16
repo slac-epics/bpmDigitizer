@@ -95,7 +95,7 @@ xy2445Create( "do0", 0, 1 )
 #		char	*	timer,		Format is "x*y@8MHz" where x must be [64,255], y must be [1,65535]
 #								The timing interval can be calculated from (x*y)/8 in microseconds.
 #		UINT8		vector )	Interrupt vector should be 0x66
-ip330Create( "ai0", 0, 2, "-10to10D", "ch0-ch8", 0, 0, "burstCont-Output-Avg1", "80*3@8MHz", 0x66 )
+ip330Create( "ai0", 0, 2, "-10to10D", "ch0-ch1", 0, 0, "burstCont-Output-Avg1", "80*3@8MHz", 0x66 )
 ip330StartConvertByName( "ai0" )
 
 # Initialize IP231 analog output module
@@ -134,13 +134,13 @@ ErConfigure( 0, 0, 0, 0, 1 )
 
 # Initialize Beckhoff Coupler
 # Bx9000_Coupler_Add( UINT8 * cplrname, UINT8 * ipaddr, UINT8 * init_string)
-Bx9000_Coupler_Add( "beck-01", "172.21.10.70", 0 )
+Bx9000_Coupler_Add( "UND-R01-BHC-05", "172.21.10.70", 0 )
 
 # Add terminals to the coupler
 # Bx9000_Terminal_Add( UINT8 * cplrname, UINT16 slot, UINT8 * btname, UINT8 * init_string)
-Bx9000_Terminal_Add("beck-01", 1, "KL3314", 0)
-Bx9000_Terminal_Add("beck-01", 2, "KL3314", 0)
-Bx9000_Terminal_Add("beck-01", 3, "KL9010", 0)
+Bx9000_Terminal_Add("UND-R01-BHC-05", 1, "KL3314", 0)
+Bx9000_Terminal_Add("UND-R01-BHC-05", 2, "KL3314", 0)
+Bx9000_Terminal_Add("UND-R01-BHC-05", 3, "KL9010", 0)
 
 # Load EPICS database definition
 dbLoadDatabase("dbd/PhaseCavityTiming.dbd",0,0)
@@ -156,8 +156,8 @@ dbLoadRecords( "db/ip445.db", "IOC=UND:R02:IOC:19,CARD=do0" )
 dbLoadRecords( "db/rfCavity.db", "IOC=UND:R02:IOC:19" )
 dbLoadRecords( "db/vmeDigiApp.db", "digi=UND:R02:IOC:19:dig1,card=1,nelm=4096" )
 dbLoadRecords( "db/phaseCavityevr.db", "IOC=UND:R02:IOC:19,EVR=UND:R02:EVR:19" )
-dbLoadRecords( "db/Bx9000.db", "COUPLER=beck-01,COUPLER_LOC=UND:R01:BHC:05" )
-dbLoadRecords( "db/KL3314.db", "COUPLER=beck-01,COUPLER_LOC=UND:R01:BHC:05" )
+dbLoadRecords( "db/Bx9000.db", "COUPLER=UND-R01-BHC-05,COUPLER_LOC=UND:R01:BHC:05" )
+dbLoadRecords( "db/KL3314.db", "COUPLER=UND-R01-BHC-05,COUPLER_LOC=UND:R01:BHC:05" )
 dbLoadRecords( "db/iocAdmin.db", "IOC=UND:R02:IOC:19" )
 dbLoadRecords( "db/save_restoreStatus.db", "IOC=UND:R02:IOC:19" )
 
@@ -197,4 +197,4 @@ mon=rtemsMonitor
 iocInit()
 
 # Start autosave backups
-create_monitor_set( "autosave.req", 60, "IOC=UND:R02:IOC:19" )
+create_monitor_set( "autosave.req", 5, "IOC=UND:R02:IOC:19" )

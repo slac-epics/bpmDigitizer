@@ -5,3 +5,5 @@ $(IOC):dig1:CLK
 $(IOC):dig1:PGA
 $(IOC):ao0:out0
 $(IOC):ao0:out1
+$(IOC):ao0:out2
+$(IOC):ao0:out3
