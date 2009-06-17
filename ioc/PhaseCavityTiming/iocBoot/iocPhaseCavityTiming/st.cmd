@@ -1,5 +1,6 @@
 ## RTEMS startup script
-## Install this st.cmd in the top of the project directory
+## cd to the top of the project directory
+cd( "../.." )
 
 ld( "bin/RTEMS-beatnik/PhaseCavityTiming.obj" )
 
