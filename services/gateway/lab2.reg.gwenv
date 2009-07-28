@@ -1,5 +1,0 @@
-# Do not execute directly.
-# This file is part of the EPICS PCDS gateway system
-# It expects iocenv.sh to be sourced and GATEWAY to be defined
-
-export EPICS_CA_MAX_ARRAY_BYTES=2202010	# 2.1MB is the biggest array supported

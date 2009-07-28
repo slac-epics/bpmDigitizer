@@ -1,8 +1,0 @@
-devBusMapped-R1-0-2-1:
-	modifications needed to bring the module to EPICS R3-14-9 standard
-
-devBusMapped-R1-0-2:
-Build against EPICS R3.14.9 and RTEMS 4.7.1 (base-R3-14-9-lcls1)
-
-devBusMapped-R1-0-1:
-Build against EPICS R3.14.8.2 and RTEMS 4.7.1 (base-R3-14-8-2-lcls2)

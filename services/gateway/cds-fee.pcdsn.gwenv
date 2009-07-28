@@ -1,6 +1,0 @@
-# Do not execute directly.
-# This file is part of the EPICS PCDS gateway system
-# It expects iocenv.sh to be sourced and GATEWAY to be defined
-
-# Re-define PV_PREFIX according to AMO naming conventions:
-PV_PREFIX="FEE:NET:EGW:01"
