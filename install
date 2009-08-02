@@ -1,0 +1,6 @@
+cp -f bin/RTEMS-beatnik/digiTest.obj	~/vmeDigi/bin/RTEMS-beatnik
+cp -f bin/RTEMS-beatnik/vmeDigiApp.obj	~/vmeDigi/bin/RTEMS-beatnik
+cp -f dbd/vmeDigiApp.dbd				~/vmeDigi/dbd
+cp -f db/vmeDigiApp.db					~/vmeDigi/db
+cp -f iocBoot/iocdigiTest/st.cmd		~/vmeDigi
+cp -f display/vmeDigiApp.edl			~/vmeDigi/display
