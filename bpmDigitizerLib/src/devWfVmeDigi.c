@@ -194,13 +194,12 @@ int          nord     = prec->nord;
 		nord = prec->nelm;
 
 	} else {
-		if (
 #if 0
-		vmeDigiIrqAck( card->digi )
+		if ( vmeDigiIrqAck( card->digi ) )
 #else
-		card->pending
+		if ( card->pending )
 #endif
-		   ) {
+		{
 			/* phase 1 of async. processing  */
 			prec->pact = TRUE;
 

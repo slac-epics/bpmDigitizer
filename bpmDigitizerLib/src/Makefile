@@ -49,7 +49,7 @@ vmeDigiApp_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 #USR_CFLAGS_RTEMS  = -I$(TOP)/include -I$(RTEMS_BASE)/
 
-DB              += vmeDigiApp.db
+DB              += vmeDigiApp.template
 
 #===========================
 
