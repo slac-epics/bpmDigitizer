@@ -1,10 +1,3 @@
-#if 0
-#include <rtems.h>
-#include <bsp/VMEDMA.h>
-#include <bsp/VME.h>
-#include <bsp/vme_am_defs.h>
-#endif
-
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -89,7 +82,7 @@ uint32_t adem;
 	}
 
 	cap = vme64ReadAMCAP(base,idx);
-	if ( ! (cap & (1<<am)) ) {
+	if ( ! (cap & (1ULL<<am)) ) {
 		fprintf(stderr,"vme64SetupADER(): requested AM 0x%02"PRIx32" not supported by function %"PRIu32"\n", am, idx);
 		return -1;
 	}
@@ -223,4 +216,28 @@ uint32_t   rval = 0;
 	}
 
 	return rval;
+}
+
+
+int
+vme64FindBoard(VME64_Addr base, int start_slot, uint32_t man_id, uint32_t brd_id)
+{
+
+	if ( start_slot < 1 )
+		start_slot = 1;
+
+	base += start_slot * VME64_CR_SPACING;
+
+	while ( start_slot <= 21 ) {
+		if (   'C' == vme64_in08(base, VME64_CR_OFF_C_ID)
+			&& 'R' == vme64_in08(base, VME64_CR_OFF_R_ID) ) {
+			if (    man_id == __vme64CSRegRead24(base, VME64_CR_OFF_MANID)
+				 && brd_id == __vme64CSRegRead32(base, VME64_CR_OFF_BRDID) )
+				return start_slot;
+		}
+		base += VME64_CR_SPACING;
+		start_slot++;
+	}
+
+	return -1;
 }

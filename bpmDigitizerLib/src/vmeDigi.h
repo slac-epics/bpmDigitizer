@@ -123,6 +123,50 @@ vmeDigiIrqAckUnused(VmeDigi digi);
 void
 vmeDigiInfo(VmeDigi digi, char *buf, int len);
 
+/***********************************************************
+ * The following routines are used for control of a remote
+ * device via the digitizer's serial interface. 16-bit 
+ * data tranfers are used. Note that this implementation 
+ * does NOT perform locking, but relies on locking being 
+ * done at a higher level. 
+ * These call an internal 'wait' routine to wait for data 
+ * transfers to complete by monitoring SIO_ACTIV bit in
+ * auxiliary control register. Interrupts are NOT disabled
+ * (do not want to while we busy-wait). Instead we restrict
+ * our operations to one register byte which is used only 
+ * by the remote serial device driver. (see vmeDigi.c for
+ * more info.) 
+ ***********************************************************/							   
+				   
+/* Call 'wait' routine to wait for any previous transfer to
+ * complete. Write message (data_out) to serial data register 
+ * and set SIO_ACTIV bit in auxiliary control register to 
+ * initiate data transfer to remote device.  
+ */
+int
+vmeDigiQspiWrite(VmeDigi digi, uint16_t data_out);
+
+/* Call 'wait' routine to wait for data transfer to complete.
+ * Read response from remote device and store in data_in.
+ *
+ * RETURNS: 0 on success
+ *          nonzero (-1) if transfer timed out
+ */
+int
+vmeDigiQspiRead(VmeDigi digi, uint16_t *data_in);
+
+/* Write message to remote device and optionally read response.
+ * Call vmeDigiQspiWrite to send message (data_out).
+ * If data_in is not NULL, call vmeDigiQspiRead to read response 
+ * and store in data_in.
+ *
+ * RETURNS: 0 on success
+ *          nonzero (-1) if transfer timed out
+ */
+int 
+vmeDigiQspiWriteRead(VmeDigi digi, uint16_t data_out, uint16_t *data_in);
+
+
 #ifdef __cplusplus
 };
 #endif

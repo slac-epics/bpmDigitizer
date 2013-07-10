@@ -10,7 +10,7 @@ extern "C" {
 /* Try to be alias rule-safe */
 
 /* This can be a VME address or as seen by the CPU! */
-#if 1
+#if 0
 /* arrgh; uintptr_t is ulonglong on older rtems */
 #define myPRIxPTR PRIx32
 typedef uint32_t VME64_Addr;
@@ -19,6 +19,10 @@ typedef uint32_t VME64_Addr;
 /* arrgh; uintptr_t is ulonglong on older rtems */
 typedef uintptr_t VME64_Addr;
 #endif
+
+#define PRIxVME64A myPRIxPTR
+
+#define VME64_CR_SPACING 0x80000
 
 typedef volatile union {
 	uint8_t	 c;
@@ -299,6 +303,19 @@ vme64CRChecksum(VME64_Addr base, int quiet);
  */
 uint32_t
 vme64ReadSN(VME64_Addr base);
+
+/*
+ * Scan geographical address space starting at slot 'start_slot'
+ * for a board with manufacturer/board-ids 'man_id'/'brd_id'.
+ *
+ * RETURNS: Slot number where board was found or '-1' if no board
+ *          was found.
+ *
+ * NOTE:    The 'base' address must be the address of VME CR space
+ *          as seen from the CPU.
+ */
+int
+vme64FindBoard(VME64_Addr base, int start_slot, uint32_t man_id, uint32_t brd_id);
 
 #ifdef __cplusplus
 };

@@ -1,8 +1,7 @@
 ### NOTE: To avoid complications we duplicated information, sorry
 ### Please propagate any modifications to the following line into
-### vmeDigiWf.dbd
+### vmeDigiSupport.dbd
 device(waveform,VME_IO,devWfVmeDigi,              "VMEDigi-Waveform")
 ### NOTE: END
-device(waveform,VME_IO,devWfVmeDigiSim,           "VMEDigi-SimWavfm")
 #don't include anything here so that we can make a loadable module
 #include "devBusMapped.dbd"

@@ -9,6 +9,8 @@
 
 #include <vmeDigi.h>
 
+#include <errlog.h>
+
 #ifdef __STRICT_ANSI__
 #include <stdarg.h>
 extern int snprintf(char *, size_t, const char *, ...);
@@ -49,18 +51,40 @@ extern int snprintf(char *, size_t, const char *, ...);
 
 #define VMEDIGI_OFF_ACQ_CTR	 0x7fb32
 
-#define VMEDIGI_OFF_AUX_CSR	 0x7fb1a
-#define VMEDIGI_AUX_CSR_ADC_PGA       (1<<15)
-#define VMEDIGI_AUX_CSR_ADC_RAND      (1<<14)
-#define VMEDIGI_AUX_CSR_ADC_DITH      (1<<13)
-#define VMEDIGI_AUX_CSR_ADC_SHDN      (1<<12)
-#define VMEDIGI_AUX_CSR_SER_PAR       (1<<11)
-#define VMEDIGI_AUX_CSR_EXT_ADC_CLK   (1<<10)
-#define VMEDIGI_AUX_CSR_ALT_FORMAT    (1<< 9)
-#define VMEDIGI_AUX_CSR_SW_INTRP      (1<< 8)
-#define VMEDIGI_AUX_CSR_SIO_ACTIV     (1<< 7)
-#define VMEDIGI_AUX_CSR_SIO_LOOPBK    (1<< 6)
-#define VMEDIGI_AUX_CSR_SIO_NBITS(x)  ((x)&0x3f)
+/* Break AUX_CSR into two pieces to be accessed with D08 transfers.
+ * This is so that the SIO_ACTIV bit (which is written by both,
+ * software and firmware -- poor HW design!) can be handled 
+ * independently of the ADC related bits.
+ *
+ * Otherwise, the AUX_CSR register would have to be locked
+ * across a full SIO transfer in order to avoid the
+ * following race condition:
+ *
+ *  - thread A polls SIO_ACTIV to be reset
+ *
+ *  - thread B issues RMW to an ADC-related bit
+ *    (e.g., SW_INTRP) in AUX_CSR.
+ *      o read AUX_CSR (SIO is still high)
+ *      o HW is done with transfer, resets SIO
+ *      o thread B writes modified value (with SIO *high*)
+ *        back
+ *    => thread B inadvertently starts a new, bogus transfer!
+ */
+#define VMEDIGI_OFF_AUX_CSRH 0x7fb1a
+#define VMEDIGI_AUX_CSRH_ADC_PGA       (1<<7)
+#define VMEDIGI_AUX_CSRH_ADC_RAND      (1<<6)
+#define VMEDIGI_AUX_CSRH_ADC_DITH      (1<<5)
+#define VMEDIGI_AUX_CSRH_ADC_SHDN      (1<<4)
+#define VMEDIGI_AUX_CSRH_SER_PAR       (1<<3)
+#define VMEDIGI_AUX_CSRH_EXT_ADC_CLK   (1<<2)
+#define VMEDIGI_AUX_CSRH_ALT_FORMAT    (1<<1)
+#define VMEDIGI_AUX_CSRH_SW_INTRP      (1<<0)
+
+#define VMEDIGI_OFF_AUX_CSRL 0x7fb1b
+#define VMEDIGI_AUX_CSRL_SIO_ACTIV     (1<<7)
+#define VMEDIGI_AUX_CSRL_SIO_LOOPBK    (1<<6)
+#define VMEDIGI_AUX_CSRL_SIO_NBITS(x)  ((x)&0x3f)         /* Get number of bits */
+#define VMEDIGI_AUX_CSRL_SIO_16BITS(x) (((x)&~0x3f)|1<<4) /* Set number of bits to 16 */
 
 #define VMEDIGI_OFF_ACQ_CSR	 0x7fb36
 #define VMEDIGI_ACQ_CSR_SW_ARM            (1<<15)	
@@ -73,6 +97,9 @@ extern int snprintf(char *, size_t, const char *, ...);
 
 #define VMEDIGI_CR_ID					0x0015fac3
 
+ /* serial data register - address in HW manual has typo! */
+#define VMEDIGI_OFF_QDR 0x7fb3c
+
 /* oldest firmware version we accept */
 #define MIN_FW_VERS          0x20001
 
@@ -80,6 +107,8 @@ struct VmeDigiRec_ {
 	VME64_Addr base; 	/* as seen from CPU */
 	unsigned   irq_msk; /* matches STS layout; shift left by 8 to match CSR layout */
 };
+
+#undef DEBUG
 
 unsigned long
 vmeDigiDetect(VME64_Addr csrbase, int quiet)
@@ -105,6 +134,40 @@ uint32_t      brdid;
 	}
 
 	return csr_local;
+}
+
+/* Set up Auxiliary Control Register to use serial interface
+ *
+ * Do not do any locking because this is performed at init by a single 
+ * thread; we assume no one else is trying to modify this register. 
+ */
+static void
+vmeDigiQspiSetup(VmeDigi digi)
+{
+uint8_t  csrl, csrh;
+
+	/* Read initial auxiliary control register */
+	csrl = vme64_in08(digi->base, VMEDIGI_OFF_AUX_CSRL); 
+	csrh = vme64_in08(digi->base, VMEDIGI_OFF_AUX_CSRH); 
+
+	/* Set serial I/O mode */
+	csrh &= ~VMEDIGI_AUX_CSRH_SER_PAR;
+
+	/* Set loopback mode off and number of SIO bits to 16 */
+	csrl &= ~VMEDIGI_AUX_CSRL_SIO_LOOPBK;
+	csrl = VMEDIGI_AUX_CSRL_SIO_16BITS(csrl);
+
+	/* Write changes */
+	vme64_out08(digi->base, VMEDIGI_OFF_AUX_CSRL, csrl);
+	vme64_out08(digi->base, VMEDIGI_OFF_AUX_CSRH, csrh);
+
+#ifdef DEBUG
+	/* Read new register values */
+	csrl = vme64_in08(digi->base, VMEDIGI_OFF_AUX_CSRL); 
+	csrh = vme64_in08(digi->base, VMEDIGI_OFF_AUX_CSRH); 
+	printf("vmeDigiQspiSetup; after SIO mode, LOOPBK mode, SIO_16BITS, csr is 0x%02x 0x%02x\n", csrl,csrh);
+#endif
+
 }
 
 VmeDigi
@@ -151,7 +214,7 @@ unsigned long fw_vers;
 	/* Setup */
 	vme64_out16(csr_local, VMEDIGI_OFF_ACQ_CSR, VMEDIGI_ACQ_CSR_TRIG | VMEDIGI_ACQ_CSR_EXT_TRIG);
 	/* Enable encoding of overflow condition in LSB */
-	vme64_out16(csr_local, VMEDIGI_OFF_AUX_CSR, VMEDIGI_AUX_CSR_ALT_FORMAT);
+	vme64_out08(csr_local, VMEDIGI_OFF_AUX_CSRH, VMEDIGI_AUX_CSRH_ALT_FORMAT);
 
 	vme64_out16(csr_local, VMEDIGI_OFF_DCM0_CSR, VMEDIGI_DCM_CSR_BYPASS);
 	vme64_out16(csr_local, VMEDIGI_OFF_DCM1_CSR, VMEDIGI_DCM_CSR_BYPASS);
@@ -173,6 +236,8 @@ unsigned long fw_vers;
 	);
 
 	digi->base = csr_local;
+
+	vmeDigiQspiSetup(digi);
 
 	rval = digi;
 	digi = 0;
@@ -252,20 +317,20 @@ rtems_interrupt_level lvl;
 	rtems_interrupt_enable(lvl);
 }
 
-/* Should NOT use this routine if AUX_CSR is controlled via devBusMapped! */
+/* Should NOT use this routine if AUX_CSRH is controlled via devBusMapped! */
 void
 vmeDigiSWIntr(VmeDigi digi)
 {
-uint16_t              val;
+uint8_t              val;
 rtems_interrupt_level lvl;
 
 	rtems_interrupt_disable(lvl);
-		val = vme64_in16( digi->base, VMEDIGI_OFF_AUX_CSR );
-		if ( VMEDIGI_AUX_CSR_SW_INTRP & val )
-			vme64_out16( digi->base, VMEDIGI_OFF_AUX_CSR, val & ~VMEDIGI_AUX_CSR_SW_INTRP );
-		vme64_out16( digi->base, VMEDIGI_OFF_AUX_CSR, val |  VMEDIGI_AUX_CSR_SW_INTRP );
-		if ( ! (VMEDIGI_AUX_CSR_SW_INTRP & val) )
-			vme64_out16( digi->base, VMEDIGI_OFF_AUX_CSR, val );
+		val = vme64_in08( digi->base, VMEDIGI_OFF_AUX_CSRH );
+		if ( VMEDIGI_AUX_CSRH_SW_INTRP & val )
+			vme64_out08( digi->base, VMEDIGI_OFF_AUX_CSRH, val & ~VMEDIGI_AUX_CSRH_SW_INTRP );
+		vme64_out08( digi->base, VMEDIGI_OFF_AUX_CSRH, val |  VMEDIGI_AUX_CSRH_SW_INTRP );
+		if ( ! (VMEDIGI_AUX_CSRH_SW_INTRP & val) )
+			vme64_out08( digi->base, VMEDIGI_OFF_AUX_CSRH, val );
 	rtems_interrupt_enable(lvl);
 }
 
@@ -387,6 +452,74 @@ unsigned l;
 
 bail:
 	*buf = 0; /* space for this was reserved at the beginning */
+}
+
+
+/* Wait for transfer (or previous transfer) to complete */
+int
+vmeDigiQspiWait(VmeDigi digi)
+{
+int i;
+	/* Wait until transfer complete; if timeout (which should never happen), return error */
+	for ( i = 0; ( VMEDIGI_AUX_CSRL_SIO_ACTIV & vme64_in08(digi->base, VMEDIGI_OFF_AUX_CSRL) ) ; i++ ) {
+		if ( i >= 10000) {
+			fprintf(stderr,"ERROR: Digi at 0x%08x; QSPI data transfer timeout\n",digi->base); 
+			return -1;
+		}
+	}
+	
+	return 0;
+}
+
+/* Write message to serial device */ 
+int
+vmeDigiQspiWrite(VmeDigi digi, uint16_t data_out)
+{
+uint8_t csrl;
+
+	if ( vmeDigiQspiWait(digi) )
+		return -1;
+
+	/* Write data_out to QDR (unused right 2 bytes are zeros) */
+	vme64_out32(digi->base, VMEDIGI_OFF_QDR, data_out << 16);
+
+        /* Read initial value of low auxiliary control register */
+        csrl = vme64_in08(digi->base, VMEDIGI_OFF_AUX_CSRL); 
+
+	/* Set serial i/o active bit to initiate data transfer */
+	csrl |= VMEDIGI_AUX_CSRL_SIO_ACTIV;
+	vme64_out08(digi->base, VMEDIGI_OFF_AUX_CSRL, csrl);
+
+	return 0;
+}
+
+/* Read response from serial device */
+int
+vmeDigiQspiRead(VmeDigi digi, uint16_t *data_in)
+{
+
+	if ( vmeDigiQspiWait(digi) )
+		return -1;
+
+	/* Copy response to data_in */
+	*data_in = vme64_in16(digi->base, VMEDIGI_OFF_QDR+2); 
+
+	return 0;
+}
+
+/* Write message to serial device and read response */ 
+int
+vmeDigiQspiWriteRead(VmeDigi digi, uint16_t data_out, uint16_t *data_in)
+{
+int rval = 0;
+
+	rval = vmeDigiQspiWrite(digi, data_out);
+
+	/* If user requested read, copy response to data_in */
+	if ( data_in )
+		rval = vmeDigiQspiRead(digi, data_in);
+
+	return rval;
 }
 
 #if 0

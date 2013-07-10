@@ -17,27 +17,31 @@ BUILDFOR=_RTEMS
 PROD_IOC_RTEMS     += vmeDigiComm
 PROD_IOC_RTEMS     += vmeDigiApp
 PROD_IOC_RTEMS     += vmeDigiDevSupMod
+PROD_IOC_RTEMS     += vmeDigiAfe
 # create a fake library containing dependecies of vmeDigiDevSupMod
 #LIB_INSTALLS_RTEMS += libvmeDigiDevSupMod-symdeps.a
 
 LIBRARY_IOC_RTEMS  += vmeDigi
 LIBRARY_IOC_RTEMS  += vmeDigiDevSup
 
-
 vmeDigi_SRCS       = vme64x.c vmeDigi.c
 
-vmeDigiDevSup_SRCS = devVmeDigiSupport.c devWfVmeDigi.c
+vmeDigiAfe_SRCS    = vmeDigiAfe_registerRecordDeviceDriver.cpp
+vmeDigiAfe_SRCS   += drvVmeDigiAfeQspi.c
+
+vmeDigiDevSup_SRCS = devVmeDigiSupport.c devWfVmeDigi.c devWfVmeDigiSup.c devWfVmeDigiSim.c
 
 vmeDigiComm_SRCS   = vmeDigiComm.c $(vmeDigi_SRCS)
 
 DBD                = vmeDigiApp.dbd
 DBD               += vmeDigiSupport.dbd
+DBD               += vmeDigiAfe.dbd
 
 vmeDigiDevSupMod_SRCS = vmeDigiSupport_registerRecordDeviceDriver.cpp
 vmeDigiDevSupMod_SRCS+= $(vmeDigiDevSup_SRCS)
 
 vmeDigiApp_DBD   = base.dbd
-vmeDigiApp_DBD  += vmeDigiSupport.dbd
+vmeDigiApp_DBD  += vmeDigiWf.dbd
 vmeDigiApp_DBD  += devBusMapped.dbd
 
 vmeDigiApp_SRCS  = vmeDigiApp_registerRecordDeviceDriver.cpp
@@ -45,6 +49,7 @@ vmeDigiApp_SRCS  = vmeDigiApp_registerRecordDeviceDriver.cpp
 vmeDigiApp_LIBS += vmeDigiDevSup
 vmeDigiApp_LIBS += vmeDigi
 vmeDigiApp_LIBS += devBusMapped
+
 vmeDigiApp_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 #USR_CFLAGS_RTEMS  = -I$(TOP)/include -I$(RTEMS_BASE)/
@@ -57,4 +62,3 @@ DB              += vmeDigiSim.db
 include $(TOP)/configure/RULES
 #----------------------------------------
 #  ADD RULES AFTER THIS LINE
-

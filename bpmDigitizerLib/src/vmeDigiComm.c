@@ -1,8 +1,10 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <rtems.h>
+#include <rtems/error.h>
 #include <bsp.h>
 #include <bsp/VME.h>
 #include <bsp/VMEDMA.h>
@@ -30,31 +32,42 @@
 
 
 #include <vmeDigi.h>
-#include <vmeDigiSim.h>
+#include <vmeDigiComm.h>
 
 /* cached value of # samples     */
 typedef struct VmeDigiCommRec_ {
-	VmeDigi		digi;
-	uint32_t	vmeaddr;
-	unsigned    vec;
-	uint16_t    nbytes;
-	int     	running;
-	int     	channel;
-	unsigned	simIdx;
-	unsigned	simEnd;
+	VmeDigi		     digi;
+	uint32_t	     vmeaddr;
+	unsigned         vec;
+	uint16_t         nbytes;
+	int16_t 	     running;
+	int     	     channel;
+	unsigned	     simIdx;
+	unsigned	     simEnd;
+	VmeDigiCommCbRec cb;
+	void             *usr_arg;
 } VmeDigiCommRec, *VmeDigiComm;
 
 typedef struct VmeDigiPktHdrRec_ {
 	struct VmeDigiPktRec_	*next;
 	VmeDigiComm              digiComm;
+	int                      refcnt;
 } VmeDigiPktHdrRec, *VmeDigiPktHdr;
+
+/* Min. size of 'header' */
+#define MINHDRSZ (sizeof(VmeDigiPktHdrRec) + UDPCOMM_DATA_ALGN_OFF)
+/* Up-align to UDPCOMM alignment boundary */
+#define __DO_ALIGN(x,a) ( ( (x) + (a) - 1 ) & ~ ((a)-1) )
+#define HDRSZ     __DO_ALIGN(MINHDRSZ, UDPCOMM_DATA_ALGN)
+
+#define PADSZ     (HDRSZ - MINHDRSZ)
 
 typedef struct VmeDigiPktRec_ {
 	VmeDigiPktHdrRec         digiInfo;
-	/* When padding we assume that the PktHdrRec is < UDPCOMM_ALIGNMENT */
-	uint8_t                  pad[UDPCOMM_ALIGNMENT - sizeof(VmeDigiPktHdrRec)];
+	/* When padding we assume that the PktHdrRec is < 2*UDPCOMM_DATA_ALGN */
+	uint8_t                  pad[PADSZ];
 	union {
-		uint8_t              raw[2048 - UDPCOMM_ALIGNMENT];
+		uint8_t              raw[2048 - PADSZ - sizeof(VmeDigiPktHdrRec)];
 		PadReplyRec          padrply;
 	}                        pkt;
 } VmeDigiPktRec, *VmeDigiPkt;
@@ -62,12 +75,16 @@ typedef struct VmeDigiPktRec_ {
 /* align to cache block size but at least 16-byte 
  * in case we want to use AltiVec.
  */
-static VmeDigiPktRec	bufs[MAX_PKTBUFS] __attribute__((aligned(UDPCOMM_ALIGNMENT))) = { {{0}} };
+static VmeDigiPktRec	bufs[MAX_PKTBUFS] __attribute__((aligned(UDPCOMM_DATA_ALGN))) = { {{0}} };
 static int        bufsUsed = 0;
 
 static VmeDigiPkt freeList = 0;
 
-static rtems_id msgq = 0;
+static rtems_id sckq = 0;
+static rtems_id irqq = 0;
+static rtems_id task = 0;
+
+static int         dmaIsrInstalled = 0;
 
 static struct {
 	uint32_t	timestampHi;
@@ -75,8 +92,13 @@ static struct {
 	uint32_t	xid;
 } timestampInfo;
 
+rtems_task_priority vmeCommTaskPriority = 15;
+
 void
 vmeCommFreePacket(UdpCommPkt ppacket);
+
+void
+vmeCommRefPacket(UdpCommPkt ppacket);
 
 VmeDigiPkt
 vmeDigiPktAlloc(VmeDigiComm digiComm)
@@ -89,7 +111,7 @@ PadReply              rply;
 		if ( freeList ) {
 			rval     = freeList;
 			freeList = rval->digiInfo.next;
-			rval->digiInfo.next = 0;
+			rval->digiInfo.next   = 0;
 		} else if ( bufsUsed < MAX_PKTBUFS ) {
 			rval                    = &bufs[bufsUsed++];
 		}
@@ -99,11 +121,12 @@ PadReply              rply;
 
 		rval->digiInfo.next     = 0;
 		rval->digiInfo.digiComm = digiComm;
+		rval->digiInfo.refcnt   = 1;
 
 		rply                    = &rval->pkt.padrply;
 
 		/* Fill in timestamps + other info from request */
-		rply->version           = PADPROTO_VERSION2;
+		rply->version           = PADPROTO_VERSION3;
 		rply->type              = PADCMD_STRM;
 		rply->chnl              = digiComm->channel;
 		rply->nBytes            = htons(digiComm->nbytes + sizeof(PadReplyRec));
@@ -150,12 +173,15 @@ static volatile VmeDigiPkt digiPending      = 0;
 static volatile VmeDigiPkt dmaInProgress    = 0;
 
 volatile unsigned vmeCommPktsDroppedNoBuf   = 0;
+volatile unsigned vmeCommPktsDroppedCbFail  = 0;
 volatile unsigned vmeCommPktsDroppedNoQSpc  = 0;
 volatile unsigned vmeCommPktsDroppedBadDma  = 0;
 volatile unsigned vmeCommPktsDroppedBadDmaStatus  = 0;
 
 volatile unsigned vmeCommDigiIrqs           = 0;
 volatile unsigned vmeCommDmaIrqs            = 0;
+volatile unsigned vmeCommDigiIrqsLL         = 0;
+volatile unsigned vmeCommDmaIrqsLL          = 0;
 
 volatile uint32_t vmeCommLastBadDmaStatus   = 0;
 
@@ -208,8 +234,20 @@ retry:
 	}
 }
 
-void
-vmeCommDigiIsr(void *arg, unsigned long vec)
+static void post_irq(void *arg)
+{
+rtems_status_code st;
+
+	st = rtems_message_queue_send( irqq, (void*)&arg, sizeof( VmeDigiComm ) );
+
+	if ( RTEMS_SUCCESSFUL != st ) {
+		printk("vmeDigiComm: FATAL ERROR - unable to post to irq queue: %s\n", rtems_status_text( st ));
+		rtems_fatal_error_occurred( st );
+	}
+}
+
+static int
+handleDigiIsr(void *arg)
 {
 VmeDigiComm           digiComm = arg;
 VmeDigiPkt            p;
@@ -221,15 +259,8 @@ rtems_interrupt_level l;
 		/* no buffer; must drop this packet */
 		vmeCommPktsDroppedNoBuf++;
 		rearm(digiComm);
-		return;
+		return -1;
 	}
-
-	/* Ack interrupt first -- otherwise we're stuck
-     * until the DMA controller releases the bus.
-     * should be safe because the board is unarmed at
-     * this point.
-     */
-	vmeDigiIrqAck(digiComm->digi);
 
 	rtems_interrupt_disable(l);
 		if ( dmaInProgress ) {
@@ -246,6 +277,22 @@ rtems_interrupt_level l;
 			startDma();
 		}
 
+	return 0;
+}
+
+void
+vmeCommDigiIsr(void *arg, unsigned long vec)
+{
+VmeDigiComm           digiComm = arg;
+
+	/* Ack interrupt first -- otherwise we're stuck
+     * until the DMA controller releases the bus.
+     * should be safe because the board is unarmed at
+     * this point.
+     */
+	vmeDigiIrqAck(digiComm->digi);
+
+	handleDigiIsr(arg);
 }
 
 void
@@ -255,20 +302,42 @@ rtems_status_code     st;
 VmeDigiComm           digiComm = dmaInProgress->digiInfo.digiComm;
 uint32_t              dma_status;
 
+	if ( ! arg && dmaIsrInstalled > 1 ) {
+		/* task driven mode */
+		vmeCommDmaIrqsLL++;
+		post_irq( 0 );
+		return;
+	}
+
 	vmeCommDmaIrqs++;
+
+	/* irq driven mode and 'real-work' from task driven mode end up here */
 
 	if ( (dma_status = BSP_VMEDmaStatus(DMACHANNEL)) ) {
 		vmeCommLastBadDmaStatus = dma_status;
 		vmeCommPktsDroppedBadDmaStatus++;	
 		vmeCommFreePacket((UdpCommPkt)dmaInProgress);
+
+		if ( arg && digiComm->cb.dma_done )
+				digiComm->cb.dma_done( digiComm->channel, digiComm->digi, digiComm->usr_arg, 0 );
 	} else {
 
-		st = rtems_message_queue_send(msgq, (void*)&dmaInProgress, sizeof(dmaInProgress));
+		if ( arg && digiComm->cb.dma_done ) {
+			if ( digiComm->cb.dma_done( digiComm->channel, digiComm->digi, digiComm->usr_arg, &dmaInProgress->pkt.padrply ) ) {
+				vmeCommPktsDroppedCbFail++;
+				vmeCommFreePacket((UdpCommPkt)dmaInProgress);
+				dmaInProgress = 0;
+			}
+		}
 
-		if ( RTEMS_SUCCESSFUL != st ) {
-			/* this should include the case when there is no queue */
-			vmeCommPktsDroppedNoQSpc++;
-			vmeCommFreePacket((UdpCommPkt)dmaInProgress);
+		if ( dmaInProgress ) {
+			st = rtems_message_queue_send(sckq, (void*)&dmaInProgress, sizeof(dmaInProgress));
+
+			if ( RTEMS_SUCCESSFUL != st ) {
+				/* this should include the case when there is no queue */
+				vmeCommPktsDroppedNoQSpc++;
+				vmeCommFreePacket((UdpCommPkt)dmaInProgress);
+			}
 		}
 	}
 
@@ -276,6 +345,67 @@ uint32_t              dma_status;
 
 	if ( moreDmaNeeded() )
 		startDma();
+}
+
+
+rtems_task
+vmeCommThread(rtems_task_argument arg)
+{
+rtems_status_code st;
+VmeDigiComm       digiComm;
+size_t            sz;
+int               dmaPending;
+
+	while ( 1 ) {
+
+		st = rtems_message_queue_receive(
+				irqq,
+				&digiComm,
+				&sz,
+				RTEMS_WAIT,
+				RTEMS_NO_TIMEOUT);
+
+		if ( RTEMS_SUCCESSFUL != st ) {
+			rtems_panic("vmeDigiComm: vmeCommThread unable to receive from msg queue: %s\n", rtems_status_text( st ) );
+			/* never get here */
+		}
+	
+		if ( 0 == sz ) /* 'KILL' */
+			break;
+
+		if ( digiComm ) {
+			dmaPending = ! handleDigiIsr( digiComm );
+			/* if acq_done is NULL then vmeCommDigiIsr is directly called from IRQ level */
+			digiComm->cb.acq_done( digiComm->channel, digiComm->digi, digiComm->usr_arg, dmaPending );
+		} else {
+			/* pass nonzero arg to indicate that real work needs to be done */
+			vmeCommDmaIsr((void*)-1);
+		}
+
+	}
+
+	BSP_VMEDmaInstallISR(DMACHANNEL, 0, 0);
+
+	rtems_message_queue_delete( irqq );
+	
+	rtems_task_delete( RTEMS_SELF );
+}
+
+void
+vmeCommDigiIsrLL(void *arg, unsigned long vec)
+{
+VmeDigiComm           digiComm = arg;
+
+	vmeCommDigiIrqsLL++;
+
+	/* Ack interrupt first -- otherwise the IRQ 
+	 * remains pending...
+     * Should be safe because the board is unarmed at
+     * this point.
+     */
+	vmeDigiIrqAck(digiComm->digi);
+
+	post_irq( arg );
 }
 
 int
@@ -330,8 +460,8 @@ int i,min,max;
 				}
 			}
 
-			if ( PADCMD_STRM_FLAG_LE & scmd_p->flags ) {
-				fprintf(stderr,"vmePadRequest(vmeDigiComm) does not implement little-endian data\n");
+			if ( (PADCMD_STRM_FLAG_32 | PADCMD_STRM_FLAG_C1 | PADCMD_STRM_FLAG_LE) & scmd_p->flags ) {
+				fprintf(stderr,"vmePadRequest(vmeDigiComm) does not implement little-endian, 32-bit data nor single-channel mode\n");
 				return -1;
 			}
 	
@@ -399,7 +529,7 @@ unsigned          timeout_ticks = ms2ticks(timeout_ms);
 		return 0;
 	}
 	st = rtems_message_queue_receive(
-		msgq,
+		sckq,
 		&p,
 		&sz,
 		timeout_ticks ? RTEMS_WAIT : RTEMS_NO_WAIT,
@@ -430,7 +560,7 @@ int    i;
 	if ( len < sizeof(r->strmReq.req) ) {
 		return -1;
 	}
-	if ( PADPROTO_VERSION2 != r->strmReq.req.version ) {
+	if ( PADPROTO_VERSION3 != r->strmReq.req.version ) {
 		fprintf(stderr,"vmeCommSend(vmeDigiComm) unsupported PAD protocol version\n");
 		return -1;
 	}
@@ -474,17 +604,17 @@ rtems_status_code st;
 
 	switch ( port ) {
 		case PADPROTO_STRM_PORT:
-			if ( msgq )
+			if ( sckq )
 				break;
 			st = rtems_message_queue_create(
 					rtems_build_name('v','m','D','Q'),
 					QDEPTH,
 					sizeof(void*),
 					RTEMS_FIFO | RTEMS_LOCAL,
-					&msgq);
+					&sckq);
 	
 			if ( RTEMS_SUCCESSFUL != st ) {
-				msgq = 0;
+				sckq = 0;
 				break;
 			}
 			return 1;
@@ -510,8 +640,8 @@ vmeCommClose(int sd)
 		break;
 
 		case 1:
-			if ( RTEMS_SUCCESSFUL == rtems_message_queue_delete( msgq ) ) {
-				msgq = 0;
+			if ( RTEMS_SUCCESSFUL == rtems_message_queue_delete( sckq ) ) {
+				sckq = 0;
 				return 0;
 			}
 			/* fall thru */
@@ -535,16 +665,34 @@ rtems_interrupt_level l;
 VmeDigiPkt            p = (VmeDigiPkt)ppacket;
 	if ( p ) {
 		rtems_interrupt_disable(l);
-		p->digiInfo.next = freeList;
-		freeList         = p;
+		if ( 0 == --p->digiInfo.refcnt ) {
+			p->digiInfo.next = freeList;
+			freeList         = p;
+		}
 		rtems_interrupt_enable(l);
 	}
 }
 
-int
-vmeCommDigiConfig(unsigned channel, VME64_Addr csrbase, VME64_Addr a32base, uint8_t irq_vec, uint8_t irq_lvl)
+void
+vmeCommRefPacket(UdpCommPkt ppacket)
 {
-static int dmaIsrInstalled = 0;
+rtems_interrupt_level l;
+VmeDigiPkt            p = (VmeDigiPkt)ppacket;
+	rtems_interrupt_disable(l);
+	p->digiInfo.refcnt++;
+	rtems_interrupt_enable(l);
+}
+
+VmeDigi
+vmeCommDigiGet(unsigned channel)
+{
+	return channel < MAX_DIGIS ? vmeDigis[channel].digi : 0;
+}
+
+int
+vmeCommDigiConfig(unsigned channel, VME64_Addr csrbase, VME64_Addr a32base, uint8_t irq_vec, uint8_t irq_lvl, VmeDigiCommCb cb, void *usr_arg)
+{
+rtems_status_code  st;
 
 VmeDigi    digi;
 
@@ -589,14 +737,76 @@ VmeDigi    digi;
 	vmeDigis[channel].running  = 0;
 	vmeDigis[channel].channel  = channel;
 
-	if ( BSP_installVME_isr(irq_vec, vmeCommDigiIsr, &vmeDigis[channel]) ) {
+	if ( cb )
+		vmeDigis[channel].cb   = *cb;
+	else
+		memset( &vmeDigis[channel].cb, 0, sizeof( vmeDigis[channel].cb ) );
+	vmeDigis[channel].usr_arg  = usr_arg;
+
+	cb = &vmeDigis[channel].cb;
+
+	/* Check if we need to start the task */
+	if ( ! irqq && ( cb->acq_done || cb->dma_done ) ) {
+		/* Yes */
+		st = rtems_task_create(
+				rtems_build_id('D','I','C','O'), 
+				vmeCommTaskPriority,
+				1024,
+				RTEMS_DEFAULT_MODES,
+				RTEMS_DEFAULT_ATTRIBUTES,
+				&task);
+				
+		if ( RTEMS_SUCCESSFUL != st ) {
+			fprintf(stderr,"vmeDigiComm: FATAL ERROR - unable to create task: %s\n", rtems_status_text(st));
+			return -1;
+		}
+
+		st = rtems_message_queue_create(
+				rtems_build_name('v','m','D','I'),
+				MAX_BPM + 2, /* 1 per digi, DMA + kill message */
+				sizeof(VmeDigiComm),
+				RTEMS_FIFO | RTEMS_LOCAL,
+				&irqq);
+
+		if ( RTEMS_SUCCESSFUL != st ) {
+			fprintf(stderr,"vmeDigiComm: FATAL ERROR - unable to create irqq: %s\n", rtems_status_text(st));
+			rtems_task_delete( task );
+			irqq = 0;
+			task = 0;
+			return -1;
+		}
+		
+		st = rtems_task_start( task, vmeCommThread, 0 );
+
+		if ( RTEMS_SUCCESSFUL != st ) {
+			fprintf(stderr,"vmeDigiComm: FATAL ERROR - unable to start task %s\n", rtems_status_text(st));
+			rtems_task_delete( task );
+			task = 0;
+			rtems_message_queue_delete( irqq );
+			irqq = 0;
+			return -1;
+		}
+	}
+
+	/* Do we need to use task driven DMA ? */
+	if ( cb->dma_done )
+		dmaIsrInstalled = 2;
+
+	/* Only install the low-level ISR if they have an 'acq_done' callback 
+	 * otherwise use the vmeCommDigiIsr directly.
+     */
+	if ( BSP_installVME_isr(irq_vec, cb->acq_done ? vmeCommDigiIsrLL : vmeCommDigiIsr, &vmeDigis[channel]) ) {
 		fprintf(stderr, "unable to install DIGI ISR\n");
 		vmeDigis[channel].digi = 0;
 		return -1;
 	}
+
+	if ( cb->cfg_done )
+		cb->cfg_done(channel, digi, &vmeDigis[channel].usr_arg);
+
 	vmeDigiIrqEnable(digi);
 
-	BSP_enableVME_int_lvl( irq_lvl );
+	BSP_enableVME_int_lvl(irq_lvl);
 
 	return 0;
 }
@@ -628,7 +838,7 @@ const union {
 
 	nsmpls = vmeDigis[channel].nbytes / PADRPLY_STRM_NCHANNELS / sizeof(int16_t);
 
-	if ( nbytes > 0 ) {
+	if ( nsmpls > 0 ) {
 		if ( BSP_vme2local_adrs(VME_AM_EXT_SUP_DATA, vmeDigis[channel].vmeaddr, &a) ) {
 			fprintf(stderr,"Unable to map VME address to PCI\n");
 			return -1;
@@ -689,12 +899,18 @@ VmeDigi digi;
 			vmeDigis[i].running = 0;
 			vmeDigiDisarm(digi);
 			vmeDigiIrqDisable(digi);
-			BSP_removeVME_isr(vmeDigis[i].vec, vmeCommDigiIsr, vmeDigis +i );
+			BSP_removeVME_isr(vmeDigis[i].vec, vmeDigis[i].cb.acq_done ? vmeCommDigiIsrLL : vmeCommDigiIsr, vmeDigis +i );
 			vmeDigis[i].digi    = 0;
 		}
 	}
 
-	BSP_VMEDmaInstallISR(DMACHANNEL, 0, 0);
+	if ( irqq ) {
+		/* send 'KILL' message */
+		rtems_message_queue_send( irqq, 0, 0 );
+		/* should synchronize with task exit but we dont... */
+	} else {
+		BSP_VMEDmaInstallISR(DMACHANNEL, 0, 0);
+	}
 }
 
 UdpCommPkt
@@ -702,6 +918,7 @@ vmeCommAllocPacket(void)
 {
 	/* This is currently unused by drvPadUdpComm */
 	fprintf(stderr,"FATAL ERROR: vmeCommAllocPacket not implemented\n");
+	fflush(stderr);
 	abort();
 }
 
@@ -719,11 +936,37 @@ static DrvPadUdpCommIORec io = {
 	recv:     vmeCommRecv,
 	bufptr:   vmeCommBufPtr,
 	alloc:    vmeCommAllocPacket,
+	creatref: vmeCommRefPacket,
 	free:     vmeCommFreePacket,
 	padIoReq: vmePadRequest,
 };
 
 DrvPadUdpCommIO drvPadVmeCommIO = &io;
+
+static void
+noop_cfg_done(unsigned channel, VmeDigi digi, void **usr_arg_p)
+{
+}
+
+static void
+noop_acq_done(unsigned channel, VmeDigi digi, void *usr_arg, int dmaPending)
+{
+}
+
+static int
+noop_dma_done(unsigned channel, VmeDigi digi, void *usr_arg, PadReply rply)
+{
+	return 0;
+}
+
+/* 'No-op' callbacks to test task-driven mode */
+static VmeDigiCommCbRec noopCbs = {
+	cfg_done: noop_cfg_done,
+	acq_done: noop_acq_done,
+	dma_done: noop_dma_done
+};
+
+VmeDigiCommCb vmeCommNoopCbs = &noopCbs;
 
 #ifdef DEBUG
 PadStrmCommandRec vmeCommDbgStrmCmd =

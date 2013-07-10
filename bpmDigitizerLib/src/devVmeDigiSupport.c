@@ -1,4 +1,4 @@
-/* $Id: devVmeDigiSupport.c,v 1.2 2008/11/25 01:39:43 strauman Exp $ */
+/* $Id: devVmeDigiSupport.c,v 1.3 2012/03/02 00:58:28 sonya Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -7,6 +7,7 @@
 #include <devLib.h>
 #include <callback.h>
 #include <iocsh.h>
+#include <errlog.h>
 
 #include <devBusMapped.h>
 
