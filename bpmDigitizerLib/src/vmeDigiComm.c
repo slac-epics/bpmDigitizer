@@ -1,20 +1,18 @@
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <rtems.h>
 #include <bsp.h>
 #include <bsp/VME.h>
 #include <bsp/VMEDMA.h>
 
-#include <udpComm.h>
 #include <padProto.h>
 #include <padStream.h>
-#if 0
+
+#include <netinet/in.h>
 #include <drvPadUdpComm.h>
-#else
-#warning "FIXME should use MAX_BPM from drvPadUdpComm.h"
-#define MAX_BPM 25
-#endif
+#include <drvPadUdpCommIO.h>
 
 #define VMEDIGI_NCHANNELS	4
 
@@ -32,6 +30,7 @@
 
 
 #include <vmeDigi.h>
+#include <vmeDigiSim.h>
 
 /* cached value of # samples     */
 typedef struct VmeDigiCommRec_ {
@@ -45,24 +44,25 @@ typedef struct VmeDigiCommRec_ {
 	unsigned	simEnd;
 } VmeDigiCommRec, *VmeDigiComm;
 
-typedef union VmeDigiPktRec_ {
-	/* we can put PktRects on a linked list;
-	 * the 'next' pointer overlaps the Ethernet
-	 * header of 'pkt' but that is OK since
-	 * all headers (Ethernet/IP/UDP) are unused
-	 * anyways.
-	 */
-	struct {
-		union VmeDigiPktRec_	*next;
-		VmeDigiComm              digiComm;
-	}                        digiInfo;
-	LanIpPacketRec			 pkt;
+typedef struct VmeDigiPktHdrRec_ {
+	struct VmeDigiPktRec_	*next;
+	VmeDigiComm              digiComm;
+} VmeDigiPktHdrRec, *VmeDigiPktHdr;
+
+typedef struct VmeDigiPktRec_ {
+	VmeDigiPktHdrRec         digiInfo;
+	/* When padding we assume that the PktHdrRec is < UDPCOMM_ALIGNMENT */
+	uint8_t                  pad[UDPCOMM_ALIGNMENT - sizeof(VmeDigiPktHdrRec)];
+	union {
+		uint8_t              raw[2048 - UDPCOMM_ALIGNMENT];
+		PadReplyRec          padrply;
+	}                        pkt;
 } VmeDigiPktRec, *VmeDigiPkt;
 
 /* align to cache block size but at least 16-byte 
  * in case we want to use AltiVec.
  */
-static VmeDigiPktRec	bufs[MAX_PKTBUFS] __attribute__((aligned(32))) = { {{0}} };
+static VmeDigiPktRec	bufs[MAX_PKTBUFS] __attribute__((aligned(UDPCOMM_ALIGNMENT))) = { {{0}} };
 static int        bufsUsed = 0;
 
 static VmeDigiPkt freeList = 0;
@@ -74,6 +74,9 @@ static struct {
 	uint32_t	timestampLo;
 	uint32_t	xid;
 } timestampInfo;
+
+void
+vmeCommFreePacket(UdpCommPkt ppacket);
 
 VmeDigiPkt
 vmeDigiPktAlloc(VmeDigiComm digiComm)
@@ -97,17 +100,17 @@ PadReply              rply;
 		rval->digiInfo.next     = 0;
 		rval->digiInfo.digiComm = digiComm;
 
-		rply                    = (PadReply)lpkt_udphdr(&rval->pkt).pld;
+		rply                    = &rval->pkt.padrply;
 
 		/* Fill in timestamps + other info from request */
-		rply->version           = PADPROTO_VERSION1;
+		rply->version           = PADPROTO_VERSION2;
 		rply->type              = PADCMD_STRM;
 		rply->chnl              = digiComm->channel;
 		rply->nBytes            = htons(digiComm->nbytes + sizeof(PadReplyRec));
 		rply->timestampHi       = timestampInfo.timestampHi;
 		rply->timestampLo       = timestampInfo.timestampLo;
 		rply->xid               = timestampInfo.xid; 
-		rply->status            = htons(0);
+		rply->stat              = 0;
 		rply->strm_cmd_idx      = 0;
 		rply->strm_cmd_flags    = PADCMD_STRM_FLAG_CM | PADRPLY_STRM_FLAG_TYPE_SET(PadDataBpm);
 	}
@@ -189,10 +192,10 @@ PadReply     rply;
 retry:
 
 	digiComm = dmaInProgress->digiInfo.digiComm;
-	rply     = (PadReply)lpkt_udphdr(&dmaInProgress->pkt).pld;
+	rply     = &dmaInProgress->pkt.padrply;
 	if ( BSP_VMEDmaStart(DMACHANNEL, BSP_LOCAL2PCI_ADDR(&rply->data[0]), digiComm->vmeaddr + digiComm->simIdx, digiComm->nbytes) ) {
 		vmeCommPktsDroppedBadDma++;
-		udpSockFreeBuf((LanIpPacket)dmaInProgress);
+		vmeCommFreePacket((UdpCommPkt)dmaInProgress);
 
 		if ( moreDmaNeeded() )
 			goto retry;
@@ -257,7 +260,7 @@ uint32_t              dma_status;
 	if ( (dma_status = BSP_VMEDmaStatus(DMACHANNEL)) ) {
 		vmeCommLastBadDmaStatus = dma_status;
 		vmeCommPktsDroppedBadDmaStatus++;	
-		udpSockFreeBuf((LanIpPacket)dmaInProgress);
+		vmeCommFreePacket((UdpCommPkt)dmaInProgress);
 	} else {
 
 		st = rtems_message_queue_send(msgq, (void*)&dmaInProgress, sizeof(dmaInProgress));
@@ -265,7 +268,7 @@ uint32_t              dma_status;
 		if ( RTEMS_SUCCESSFUL != st ) {
 			/* this should include the case when there is no queue */
 			vmeCommPktsDroppedNoQSpc++;
-			udpSockFreeBuf((LanIpPacket)dmaInProgress);
+			vmeCommFreePacket((UdpCommPkt)dmaInProgress);
 		}
 	}
 
@@ -276,22 +279,22 @@ uint32_t              dma_status;
 }
 
 int
-padRequest(int sd, int who, int type, uint32_t xid, void *cmdData, UdpCommPkt *wantReply, int timeout_ms)
+vmePadRequest(int sd, int who, int type, uint32_t xid, uint32_t tsHi, uint32_t tsLo, void *cmdData, UdpCommPkt *wantReply, int timeout_ms)
 {
 int i,min,max;
 
 	if ( sd != 0 ) {
-		fprintf(stderr,"padRequest(vmeDigiComm) unsupported sd\n");
+		fprintf(stderr,"vmePadRequest(vmeDigiComm) unsupported sd\n");
 		return -1;
 	}
 
 	if ( wantReply ) {
-		fprintf(stderr,"padRequest(vmeDigiComm) does not implement replies\n");
+		fprintf(stderr,"vmePadRequest(vmeDigiComm) does not implement replies\n");
 		return -1;
 	}
 
 	if ( who >= MAX_DIGIS ) {
-		fprintf(stderr,"padRequest(vmeDigiComm) channel # too big (%i)\n", who);
+		fprintf(stderr,"vmePadRequest(vmeDigiComm) channel # too big (%i)\n", who);
 		return -1;
 	}
 
@@ -301,7 +304,9 @@ int i,min,max;
 		min=who; max=who+1;
 	}
 
-	timestampInfo.xid = xid;
+	timestampInfo.xid         = xid;
+	timestampInfo.timestampHi = htonl(tsHi); 
+	timestampInfo.timestampLo = htonl(tsLo); 
 
 	switch ( PADCMD_GET(type) ) {
 		case PADCMD_STRM:
@@ -312,7 +317,7 @@ int i,min,max;
 
 			for ( i=min; i<max; i++ ) {
 				if ( ! vmeDigis[i].digi ) {
-					fprintf(stderr,"padRequest(vmeDigiComm) channel #%i -- no module connected\n", who);
+					fprintf(stderr,"vmePadRequest(vmeDigiComm) channel #%i -- no module connected\n", who);
 					return -1;
 				}
 				if ( vmeDigis[i].nbytes != nbytes ) {
@@ -326,12 +331,12 @@ int i,min,max;
 			}
 
 			if ( PADCMD_STRM_FLAG_LE & scmd_p->flags ) {
-				fprintf(stderr,"padRequest(vmeDigiComm) does not implement little-endian data\n");
+				fprintf(stderr,"vmePadRequest(vmeDigiComm) does not implement little-endian data\n");
 				return -1;
 			}
 	
 			if ( ! (PADCMD_STRM_FLAG_CM & scmd_p->flags) ) {
-				fprintf(stderr,"padRequest(vmeDigiComm) does not implement row-major data\n");
+				fprintf(stderr,"vmePadRequest(vmeDigiComm) does not implement row-major data\n");
 				return -1;
 			}
 			}
@@ -341,7 +346,7 @@ int i,min,max;
 
 			for ( i=min; i<max; i++ ) {
 				if ( ! vmeDigis[i].digi ) {
-					fprintf(stderr,"padRequest(vmeDigiComm) channel #%i -- no module connected\n", who);
+					fprintf(stderr,"vmePadRequest(vmeDigiComm) channel #%i -- no module connected\n", who);
 					return -1;
 				}
 				if ( vmeDigis[i].running ) {
@@ -356,21 +361,41 @@ int i,min,max;
 		break;
 
 		default:
-		fprintf(stderr,"padRequest(vmeDigiComm) does not implement cmd type %i\n",type);
+		fprintf(stderr,"vmePadRequest(vmeDigiComm) does not implement cmd type %i\n",type);
 		return -1;
 	}
 	return 0;
 }
 
-LanIpPacketRec *
-udpSockRecv(int sd, int timeout_ticks)
+static inline int ms2ticks(int ms)
+{
+    if ( ms > 0 ) {
+        rtems_interval rate;
+        rtems_clock_get(RTEMS_CLOCK_GET_TICKS_PER_SECOND, &rate);
+        if ( ms > 50000 ) {
+            ms /= 1000;
+            ms *= rate;
+        } else {
+            ms *= rate;
+            ms /= 1000;
+        }
+        if ( 0 == ms ) {
+            ms = 1;
+        }
+    }
+    return ms;
+}
+
+UdpCommPkt
+vmeCommRecv(int sd, int timeout_ms)
 {
 size_t            sz;
 void              *p;
 rtems_status_code st;
+unsigned          timeout_ticks = ms2ticks(timeout_ms);
 
 	if ( sd != 1 ) {
-		fprintf(stderr,"udpSockRecv(vmeDigiComm) bad socket sd\n");
+		fprintf(stderr,"vmeCommRecv(vmeDigiComm) bad socket sd\n");
 		return 0;
 	}
 	st = rtems_message_queue_receive(
@@ -392,40 +417,49 @@ typedef union {
 } PadReq;
 
 int
-udpSockSend(int sd, void *buf, int len)
+vmeCommSend(int sd, void *buf, int len)
 {
 PadReq *r = buf;
 int    i;
 
 	if ( sd != 0 ) {
-		fprintf(stderr,"udpSockSend(vmeDigiComm) unsupported sd\n");
+		fprintf(stderr,"vmeCommSend(vmeDigiComm) unsupported sd\n");
 		return -1;
 	}
 
 	if ( len < sizeof(r->strmReq.req) ) {
 		return -1;
 	}
-	if ( PADPROTO_VERSION1 != r->strmReq.req.version ) {
-		fprintf(stderr,"udpSockSend(vmeDigiComm) unsupported PAD protocol version\n");
+	if ( PADPROTO_VERSION2 != r->strmReq.req.version ) {
+		fprintf(stderr,"vmeCommSend(vmeDigiComm) unsupported PAD protocol version\n");
 		return -1;
 	}
 	if ( sizeof(r->strmReq.scmd[0]) != r->strmReq.req.cmdSize ) {
-		fprintf(stderr,"udpSockSend(vmeDigiComm) command size mismatch\n");
+		fprintf(stderr,"vmeCommSend(vmeDigiComm) command size mismatch\n");
 		return -1;
 	}
 	if ( r->strmReq.req.nCmds < 0 ) {
-		fprintf(stderr,"udpSockSend(vmeDigiComm) command numbers < 0 not implemented\n");
+		fprintf(stderr,"vmeCommSend(vmeDigiComm) command numbers < 0 not implemented\n");
 		return -1;
 	}
 	if ( MAX_DIGIS < r->strmReq.req.nCmds ) {
-		fprintf(stderr,"udpSockSend(vmeDigiComm) max. command number mismatch\n");
+		fprintf(stderr,"vmeCommSend(vmeDigiComm) max. command number mismatch\n");
 		return -1;
 	}
 	/* Ugly hack to pass this info :-( */
 	timestampInfo.timestampHi = r->strmReq.req.timestampHi;
 	timestampInfo.timestampLo = r->strmReq.req.timestampLo;
 	for ( i=0; i<r->strmReq.req.nCmds; i++ ) {
-		if ( padRequest(sd, i, r->strmReq.scmd[i].type, r->strmReq.req.xid, &r->strmReq.scmd[i], 0, -1) )
+		if ( vmePadRequest(
+							sd,
+							i,
+							r->strmReq.scmd[i].type,
+							r->strmReq.req.xid,
+							ntohl(timestampInfo.timestampHi),
+							ntohl(timestampInfo.timestampLo),			
+							&r->strmReq.scmd[i],
+							0,
+							-1) )
 			return -1;
 	}
 	return len;
@@ -434,7 +468,7 @@ int    i;
 static int given = 0;
 
 int 
-udpSockCreate(int port)
+vmeCommSocket(int port)
 {
 rtems_status_code st;
 
@@ -465,7 +499,7 @@ rtems_status_code st;
 }
 
 int
-udpSockDestroy(int sd)
+vmeCommClose(int sd)
 {
 	switch ( sd ) {
 		case 0:
@@ -488,14 +522,14 @@ udpSockDestroy(int sd)
 }
 
 int
-udpSockConnect(int sd, uint32_t didaddr, int port)
+vmeCommConnect(int sd, uint32_t didaddr, int port)
 {
 	return 0;
 }
 
 
 void
-udpSockFreeBuf(LanIpPacketRec *ppacket)
+vmeCommFreePacket(UdpCommPkt ppacket)
 {
 rtems_interrupt_level l;
 VmeDigiPkt            p = (VmeDigiPkt)ppacket;
@@ -577,6 +611,12 @@ unsigned nsmpls;
 unsigned long a;
 unsigned key;
 
+/* Endianness-tester */
+const union {
+	short s;
+	char  c[2];
+} isLE = { s: 1 };
+
 	if ( channel < 0 || channel >= MAX_BPM ) {
 		fprintf(stderr,"Invalid channel # %i\n",channel);
 		return -1;
@@ -591,6 +631,11 @@ unsigned key;
 	if ( nbytes > 0 ) {
 		if ( BSP_vme2local_adrs(VME_AM_EXT_SUP_DATA, vmeDigis[channel].vmeaddr, &a) ) {
 			fprintf(stderr,"Unable to map VME address to PCI\n");
+			return -1;
+		}
+
+		if ( isLE.c[0] ) {
+			fprintf(stderr,"vmeDigiCommSetSimMode: little-endian CPU support is not implemented\n");
 			return -1;
 		}
 		a = BSP_PCI2LOCAL_ADDR(a);
@@ -635,8 +680,8 @@ vmeCommDigiCleanup()
 int     i;
 VmeDigi digi;
 
-	udpSockDestroy(0);
-	udpSockDestroy(1);
+	vmeCommClose(0);
+	vmeCommClose(1);
 
 	/* assume DMA is quiet */
 	for ( i=0; i<MAX_DIGIS; i++ ) {
@@ -652,6 +697,34 @@ VmeDigi digi;
 	BSP_VMEDmaInstallISR(DMACHANNEL, 0, 0);
 }
 
+UdpCommPkt
+vmeCommAllocPacket(void)
+{
+	/* This is currently unused by drvPadUdpComm */
+	fprintf(stderr,"FATAL ERROR: vmeCommAllocPacket not implemented\n");
+	abort();
+}
+
+void * 
+vmeCommBufPtr(UdpCommPkt p)
+{
+	return &((VmeDigiPkt)p)->pkt;
+}
+
+static DrvPadUdpCommIORec io = {
+	open:     vmeCommSocket,
+	close:    vmeCommClose,
+	connect:  vmeCommConnect,
+	send:     vmeCommSend,
+	recv:     vmeCommRecv,
+	bufptr:   vmeCommBufPtr,
+	alloc:    vmeCommAllocPacket,
+	free:     vmeCommFreePacket,
+	padIoReq: vmePadRequest,
+};
+
+DrvPadUdpCommIO drvPadVmeCommIO = &io;
+
 #ifdef DEBUG
 PadStrmCommandRec vmeCommDbgStrmCmd =
 {
@@ -663,7 +736,7 @@ int
 vmeCommDbgStrmStart(int channel, unsigned nsamples)
 {
 	vmeCommDbgStrmCmd.nsamples = htonl(nsamples);
-	return padRequest(0, channel, PADCMD_STRM, 0, &vmeCommDbgStrmCmd, 0, 0);
+	return vmePadRequest(0, channel, PADCMD_STRM, 0, 0, 0, &vmeCommDbgStrmCmd, 0, 0);
 }
 
 #endif

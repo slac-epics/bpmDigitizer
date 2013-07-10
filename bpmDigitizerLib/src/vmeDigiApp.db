@@ -1,3 +1,5 @@
+## NOTE 'card' index is ONE (not zero) based!
+
 record(waveform, "$(digi):WAV")
 {
 	field(DESC, "Raw VMEDIGI Data")
@@ -10,35 +12,7 @@ record(waveform, "$(digi):WAV")
 	field(HOPR, "32768")
 	field(LOPR, "-32767")
 	field(SCAN, "Passive")
-#	field(FLNK, "$(digi):ASTA")
-	field(FLNK, "$(digi):WAV_Fanout PP")
-}
-
-record( fanout, $(digi):WAV_Fanout )
-{
-	field(LNK1, "$(digi):WAV1 PP")
-	field(LNK2, "$(digi):WAV2 PP")
-	field(FLNK, "$(digi):ASTA PP")
-}
-
-record(subArray, "$(digi):WAV1")
-{
-	field(INP, "$(digi):WAV NPP MS")
-	field(DTYP, "Soft Channel" )
-	field(FTVL, "SHORT" )
-	field(MALM, "$(nelm)" )
-	field(NELM, "$(nelm)" )
-	field(INDX, "0" )
-}
-
-record(subArray, "$(digi):WAV2")
-{
-	field(INP, "$(digi):WAV NPP MS")
-	field(DTYP, "Soft Channel" )
-	field(FTVL, "SHORT" )
-	field(MALM, "$(nelm)" )
-	field(NELM, "$(nelm)" )
-	field(INDX, "0" )
+	field(FLNK, "$(digi):ASTA")
 }
 
 record(bo, "$(digi):PGA")
@@ -72,8 +46,6 @@ record(longin, "$(digi):ASTA")
 	field(INP,  "#C0S0@vmeDigi$(card)+0x7fa3a,be16")
 	field(PINI, "YES")
 	field(FLNK, "$(digi):ISTA")
-	field(LOLO,  "0" )
-	field(LLSV,  "MAJOR" )
 }
 
 
@@ -119,7 +91,6 @@ record(mbbo, "$(digi):ARM")
 	field(TWVL, "2")
 	field(THST, "SW-Trig")
 	field(THVL, "-1")
-	field(PINI, "YES")
 }
 
 record(longin, "$(digi):S_N")

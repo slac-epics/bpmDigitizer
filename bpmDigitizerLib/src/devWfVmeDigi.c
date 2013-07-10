@@ -1,4 +1,4 @@
-/* $Id: devWfVmeDigi.c,v 1.2 2008/11/25 01:39:43 strauman Exp $ */
+/* $Id: devWfVmeDigi.c,v 1.4 2010/02/18 02:19:33 till Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +14,7 @@
 #include <waveformRecord.h>
 
 #include <devVmeDigiSupport.h>
+#include <vmeDigiSim.h>
 
 #define NCHAN     4
 
@@ -99,37 +100,51 @@ static void init(int phase)
 	}
 }
 
-static long init_record(struct waveformRecord *prec)
+static int
+argcheck(struct waveformRecord *prec, const char *prefix, int needs_config)
 {
-VmeDigiDPVT *dpvt;
 int          idx;
 
 	if ( VME_IO != prec->inp.type ) {
-		epicsPrintf("devWfVmeDigi.init_record(): expect VME_IO link\n");
-		goto bail;
+		epicsPrintf("%s.init_record(): expect VME_IO link\n",prefix);
+		return -1;
 	}
 
 	idx = prec->inp.value.vmeio.card;
 
 	if ( idx < 1 || idx > MAX_DIGIS ) {
-		epicsPrintf("devWfVmeDigi.init_record(): card # %i out of range\n", idx);
-		goto bail;
+		epicsPrintf("%s.init_record(): card # %i out of range\n", prefix, idx);
+		return -1;
 	}
 
-	if ( ! devVmeDigis[idx-1].digi ) {
-		epicsPrintf("devWfVmeDigi.init_record(): card # %i not configured\n", idx);
-		goto bail;
+	if ( needs_config && ! devVmeDigis[idx-1].digi ) {
+		epicsPrintf("%s.init_record(): card # %i not configured\n", prefix, idx);
+		return -1;
 	}
 
 	if ( DBR_SHORT != prec->ftvl ) {
-		epicsPrintf("devWfVmeDigi.init_record(): FTVL must be SHORT\n");
-		goto bail;
+		epicsPrintf("%s.init_record(): FTVL must be SHORT\n", prefix);
+		return -1;
 	}
 
 	if ( prec->nelm % NCHAN != 0 || 0 == prec->nelm ) {
-		epicsPrintf("devWfVmeDigi.init_record(): NELM must be a (nonzero) multible of %i\n", NCHAN);
-		goto bail;
+		epicsPrintf("%s.init_record(): NELM must be a (nonzero) multible of %i\n", prefix, NCHAN);
+		return -1;
 	}
+
+	return idx;
+}
+
+
+static long init_record(struct waveformRecord *prec)
+{
+VmeDigiDPVT *dpvt;
+int          idx;
+
+	idx = argcheck(prec, "devWfVmeDigi", 1);
+
+	if ( idx < 0 )
+		goto bail;
 
 	if ( prec->nelm > NCHAN*devVmeDigis[idx-1].size ) {
 		epicsPrintf("devWfVmeDigi.init_record(): NELM too big\n");
@@ -260,3 +275,51 @@ struct {
 };
 
 epicsExportAddress(dset, devWfVmeDigi);
+
+static void report_sim(int interest_level)
+{
+	epicsPrintf("Waveform Device support for drvPadUdpComm simulation mode\n"
+                "on the SLAC 16-bit/130MSPS VME Digitizer\n");
+}
+
+static long init_record_sim(struct waveformRecord *prec)
+{
+int         idx;
+
+	idx = argcheck(prec, "devWfVmeDigiSim", 0);
+
+	if ( idx < 0 )
+		goto bail;
+
+	return 0;
+
+bail:
+	prec->pact = TRUE;
+	return -1;
+}
+
+static long
+read_waveform_sim(struct waveformRecord *prec)
+{
+int idx    = prec->inp.value.vmeio.card - 1;
+int nbytes = prec->nord * sizeof(short);
+	return vmeDigiCommSetSimMode(idx, prec->bptr, nbytes);
+}
+
+struct {
+	long		number;
+	DEVSUPFUN	report;
+	DEVSUPFUN	init;
+	DEVSUPFUN	init_record;
+	DEVSUPFUN	get_ioint_info;
+	DEVSUPFUN	read;
+} devWfVmeDigiSim = {
+	5,
+	(DEVSUPFUN)report_sim,
+	(DEVSUPFUN)0,
+	(DEVSUPFUN)init_record_sim,
+	(DEVSUPFUN)0,
+	(DEVSUPFUN)read_waveform_sim
+};
+
+epicsExportAddress(dset, devWfVmeDigiSim);

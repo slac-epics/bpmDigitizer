@@ -1,0 +1,17 @@
+## NOTE 'card' index is ONE (not zero) based!
+
+record(waveform, "$(digi):SIMWF")
+{
+	field(DESC, "Sim VMEDIGI Data")
+	field(DTYP, "VMEDigi-SimWavfm")
+	field(INP, "#C$(card)S0@")
+# NELM must be a multiple of 4 (# of digitizer channels)
+	field(NELM, "$(nelm)")
+	field(FTVL, "SHORT")
+	field(EGU, "Counts")
+	field(HOPR, "32768")
+	field(LOPR, "-32767")
+	field(SCAN, "Passive")
+}
+
+
