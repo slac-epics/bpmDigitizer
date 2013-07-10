@@ -463,7 +463,7 @@ int i;
 	/* Wait until transfer complete; if timeout (which should never happen), return error */
 	for ( i = 0; ( VMEDIGI_AUX_CSRL_SIO_ACTIV & vme64_in08(digi->base, VMEDIGI_OFF_AUX_CSRL) ) ; i++ ) {
 		if ( i >= 10000) {
-			fprintf(stderr,"ERROR: Digi at 0x%08x; QSPI data transfer timeout\n",digi->base); 
+			fprintf(stderr,"ERROR: Digi at 0x%08llx; QSPI data transfer timeout\n", (unsigned long long)digi->base); 
 			return -1;
 		}
 	}
@@ -473,8 +473,9 @@ int i;
 
 /* Write message to serial device */ 
 int
-vmeDigiQspiWrite(VmeDigi digi, uint16_t data_out)
+vmeDigiQspiWrite(void *device, uint16_t data_out)
 {
+VmeDigi digi = device;
 uint8_t csrl;
 
 	if ( vmeDigiQspiWait(digi) )
@@ -495,8 +496,9 @@ uint8_t csrl;
 
 /* Read response from serial device */
 int
-vmeDigiQspiRead(VmeDigi digi, uint16_t *data_in)
+vmeDigiQspiRead(void *device, uint16_t *data_in)
 {
+VmeDigi digi = device;
 
 	if ( vmeDigiQspiWait(digi) )
 		return -1;
@@ -509,9 +511,10 @@ vmeDigiQspiRead(VmeDigi digi, uint16_t *data_in)
 
 /* Write message to serial device and read response */ 
 int
-vmeDigiQspiWriteRead(VmeDigi digi, uint16_t data_out, uint16_t *data_in)
+vmeDigiQspiWriteRead(void *device, uint16_t data_out, uint16_t *data_in)
 {
-int rval = 0;
+VmeDigi digi = device;
+int     rval = 0;
 
 	rval = vmeDigiQspiWrite(digi, data_out);
 

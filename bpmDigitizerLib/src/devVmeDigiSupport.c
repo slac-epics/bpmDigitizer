@@ -1,4 +1,4 @@
-/* $Id: devVmeDigiSupport.c,v 1.3 2012/03/02 00:58:28 sonya Exp $ */
+/* $Id: devVmeDigiSupport.c,v 1.4 2012/11/29 00:26:08 strauman Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -19,7 +19,7 @@ VmeDigiCard devVmeDigis[MAX_DIGIS] = { {0} };
 
 static volatile uint16_t ista_bits[MAX_DIGIS];
 
-static int readSlot(DevBusMappedPvt p, unsigned *pval, dbCommon *prec)
+static int readSlot(DevBusMappedPvt p, epicsUInt32 *pval, int idx, dbCommon *prec)
 {
 uint32_t slot = (uint32_t)p->dev->baseAddr;
 
@@ -29,7 +29,7 @@ uint32_t slot = (uint32_t)p->dev->baseAddr;
 	return 0;
 }
 
-static int readSN(DevBusMappedPvt p, unsigned *pval, dbCommon *prec)
+static int readSN(DevBusMappedPvt p, epicsUInt32 *pval, int idx, dbCommon *prec)
 {
 uint32_t sn = vme64ReadSN((VME64_Addr)p->dev->baseAddr);
 
@@ -40,7 +40,7 @@ uint32_t sn = vme64ReadSN((VME64_Addr)p->dev->baseAddr);
 	return 0;
 }
 
-static int readCR32(DevBusMappedPvt p, unsigned *pval, dbCommon *prec)
+static int readCR32(DevBusMappedPvt p, epicsUInt32 *pval, int idx, dbCommon *prec)
 {
 	*pval = vme64CSRegRead32((VME64_Addr)p->addr,0);
 	return 0;

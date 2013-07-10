@@ -100,33 +100,44 @@ vmeCommFreePacket(UdpCommPkt ppacket);
 void
 vmeCommRefPacket(UdpCommPkt ppacket);
 
-VmeDigiPkt
-vmeDigiPktAlloc(VmeDigiComm digiComm)
+UdpCommPkt
+vmeCommAllocPacket(int fd)
 {
 VmeDigiPkt            rval = 0;
 rtems_interrupt_level l;
-PadReply              rply;
 
 	rtems_interrupt_disable(l);
 		if ( freeList ) {
 			rval     = freeList;
 			freeList = rval->digiInfo.next;
-			rval->digiInfo.next   = 0;
 		} else if ( bufsUsed < MAX_PKTBUFS ) {
-			rval                    = &bufs[bufsUsed++];
+			rval    = &bufs[bufsUsed++];
 		}
 	rtems_interrupt_enable(l);
 
 	if ( rval ) {
-
 		rval->digiInfo.next     = 0;
-		rval->digiInfo.digiComm = digiComm;
+		rval->digiInfo.digiComm = 0;
 		rval->digiInfo.refcnt   = 1;
+	}
+
+	return (UdpCommPkt)rval;
+}
+
+VmeDigiPkt
+vmeDigiPktAlloc(VmeDigiComm digiComm)
+{
+PadReply              rply;
+VmeDigiPkt            rval;
+
+	if ( (rval = (VmeDigiPkt)vmeCommAllocPacket(0)) ) {
+
+		rval->digiInfo.digiComm = digiComm;
 
 		rply                    = &rval->pkt.padrply;
 
 		/* Fill in timestamps + other info from request */
-		rply->version           = PADPROTO_VERSION3;
+		rply->version           = PADPROTO_VERSION4;
 		rply->type              = PADCMD_STRM;
 		rply->chnl              = digiComm->channel;
 		rply->nBytes            = htons(digiComm->nbytes + sizeof(PadReplyRec));
@@ -412,14 +423,15 @@ int
 vmePadRequest(int sd, int who, int type, uint32_t xid, uint32_t tsHi, uint32_t tsLo, void *cmdData, UdpCommPkt *wantReply, int timeout_ms)
 {
 int i,min,max;
+PadReply rply;
 
 	if ( sd != 0 ) {
 		fprintf(stderr,"vmePadRequest(vmeDigiComm) unsupported sd\n");
 		return -1;
 	}
 
-	if ( wantReply ) {
-		fprintf(stderr,"vmePadRequest(vmeDigiComm) does not implement replies\n");
+	if ( wantReply && PADCMD_SQRY != type ) {
+		fprintf(stderr,"vmePadRequest(vmeDigiComm) does not implement replies other than queries\n");
 		return -1;
 	}
 
@@ -470,6 +482,34 @@ int i,min,max;
 				return -1;
 			}
 			}
+		break;
+
+		case PADCMD_SQRY:
+			if ( (PADCMD_QUIET & type) ) {
+				if ( wantReply )
+					*wantReply = 0;
+				return 0;
+			}
+			if ( ! wantReply ) {
+				fprintf(stderr,"vmePadRequest(vmeDigiComm) PADCMD_SQRY with NULL wantReply??\n");
+				return -1;
+			}
+			if ( ! (*wantReply = vmeCommAllocPacket(0)) ) {
+				/* no available packets */
+				return -1;
+			}
+			rply          = &((VmeDigiPkt)*wantReply)->pkt.padrply;
+			rply->version = PADPROTO_VERSION4;
+			rply->type    = PADCMD_SQRY | PADCMD_RPLY;
+			rply->chnl    = min;
+			rply->stat    = 0;
+			rply->timestampHi = timestampInfo.timestampHi;
+			rply->timestampLo = timestampInfo.timestampLo;
+			rply->xid     = xid;
+			rply->nBytes  = htons(sizeof(*rply));
+			/* we DO support column-major, big-endian, 16-bit, 4-channel mode ONLY */ 
+			rply->strm_sqry_sup_on  = PADCMD_STRM_FLAG_CM;
+			rply->strm_sqry_sup_off = PADCMD_STRM_FLAG_32 | PADCMD_STRM_FLAG_C1 | PADCMD_STRM_FLAG_LE;
 		break;
 
 		case PADCMD_STOP:
@@ -560,7 +600,7 @@ int    i;
 	if ( len < sizeof(r->strmReq.req) ) {
 		return -1;
 	}
-	if ( PADPROTO_VERSION3 != r->strmReq.req.version ) {
+	if ( PADPROTO_VERSION4 != r->strmReq.req.version ) {
 		fprintf(stderr,"vmeCommSend(vmeDigiComm) unsupported PAD protocol version\n");
 		return -1;
 	}
@@ -666,8 +706,9 @@ VmeDigiPkt            p = (VmeDigiPkt)ppacket;
 	if ( p ) {
 		rtems_interrupt_disable(l);
 		if ( 0 == --p->digiInfo.refcnt ) {
-			p->digiInfo.next = freeList;
-			freeList         = p;
+			p->digiInfo.next     = freeList;
+			p->digiInfo.digiComm = 0;
+			freeList             = p;
 		}
 		rtems_interrupt_enable(l);
 	}
@@ -911,15 +952,6 @@ VmeDigi digi;
 	} else {
 		BSP_VMEDmaInstallISR(DMACHANNEL, 0, 0);
 	}
-}
-
-UdpCommPkt
-vmeCommAllocPacket(void)
-{
-	/* This is currently unused by drvPadUdpComm */
-	fprintf(stderr,"FATAL ERROR: vmeCommAllocPacket not implemented\n");
-	fflush(stderr);
-	abort();
 }
 
 void * 

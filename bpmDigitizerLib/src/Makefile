@@ -17,7 +17,6 @@ BUILDFOR=_RTEMS
 PROD_IOC_RTEMS     += vmeDigiComm
 PROD_IOC_RTEMS     += vmeDigiApp
 PROD_IOC_RTEMS     += vmeDigiDevSupMod
-PROD_IOC_RTEMS     += vmeDigiAfe
 # create a fake library containing dependecies of vmeDigiDevSupMod
 #LIB_INSTALLS_RTEMS += libvmeDigiDevSupMod-symdeps.a
 
@@ -26,17 +25,12 @@ LIBRARY_IOC_RTEMS  += vmeDigiDevSup
 
 vmeDigi_SRCS       = vme64x.c vmeDigi.c
 
-vmeDigiAfe_SRCS    = vmeDigiAfe_registerRecordDeviceDriver.cpp
-vmeDigiAfe_SRCS   += drvVmeDigiAfeQspi.c
-
 vmeDigiDevSup_SRCS = devVmeDigiSupport.c devWfVmeDigi.c devWfVmeDigiSup.c devWfVmeDigiSim.c
 
 vmeDigiComm_SRCS   = vmeDigiComm.c $(vmeDigi_SRCS)
 
 DBD                = vmeDigiApp.dbd
 DBD               += vmeDigiSupport.dbd
-DBD               += vmeDigiAfe.dbd
-
 vmeDigiDevSupMod_SRCS = vmeDigiSupport_registerRecordDeviceDriver.cpp
 vmeDigiDevSupMod_SRCS+= $(vmeDigiDevSup_SRCS)
 
@@ -54,9 +48,10 @@ vmeDigiApp_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 #USR_CFLAGS_RTEMS  = -I$(TOP)/include -I$(RTEMS_BASE)/
 
+INC += vmeDigi.h vmeDigiComm.h vme64x.h
+
 DB              += vmeDigiApp.db
 DB              += vmeDigiSim.db
-
 #===========================
 
 include $(TOP)/configure/RULES

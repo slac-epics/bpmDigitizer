@@ -144,7 +144,7 @@ vmeDigiInfo(VmeDigi digi, char *buf, int len);
  * initiate data transfer to remote device.  
  */
 int
-vmeDigiQspiWrite(VmeDigi digi, uint16_t data_out);
+vmeDigiQspiWrite(void *device, uint16_t data_out);
 
 /* Call 'wait' routine to wait for data transfer to complete.
  * Read response from remote device and store in data_in.
@@ -153,7 +153,7 @@ vmeDigiQspiWrite(VmeDigi digi, uint16_t data_out);
  *          nonzero (-1) if transfer timed out
  */
 int
-vmeDigiQspiRead(VmeDigi digi, uint16_t *data_in);
+vmeDigiQspiRead(void *device, uint16_t *data_in);
 
 /* Write message to remote device and optionally read response.
  * Call vmeDigiQspiWrite to send message (data_out).
@@ -164,7 +164,7 @@ vmeDigiQspiRead(VmeDigi digi, uint16_t *data_in);
  *          nonzero (-1) if transfer timed out
  */
 int 
-vmeDigiQspiWriteRead(VmeDigi digi, uint16_t data_out, uint16_t *data_in);
+vmeDigiQspiWriteRead(void *device, uint16_t data_out, uint16_t *data_in);
 
 
 #ifdef __cplusplus
