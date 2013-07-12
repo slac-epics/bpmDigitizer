@@ -14,7 +14,9 @@ CROSS_COMPILER_TARGET_ARCHS=RTEMS-beatnik
 # several facilities (evr, micro, ...) for this to work.
 BUILDFOR=_RTEMS
 
+ifdef UDPCOMM
 PROD_IOC_RTEMS     += vmeDigiComm
+endif
 PROD_IOC_RTEMS     += vmeDigiApp
 PROD_IOC_RTEMS     += vmeDigiDevSupMod
 # create a fake library containing dependecies of vmeDigiDevSupMod
@@ -25,7 +27,10 @@ LIBRARY_IOC_RTEMS  += vmeDigiDevSup
 
 vmeDigi_SRCS       = vme64x.c vmeDigi.c
 
-vmeDigiDevSup_SRCS = devVmeDigiSupport.c devWfVmeDigi.c devWfVmeDigiSup.c devWfVmeDigiSim.c
+vmeDigiDevSup_SRCS = devVmeDigiSupport.c devWfVmeDigi.c devWfVmeDigiSup.c
+ifdef UDPCOMM
+vmeDigiDevSup_SRCS += devWfVmeDigiSim.c
+endif
 
 vmeDigiComm_SRCS   = vmeDigiComm.c $(vmeDigi_SRCS)
 
