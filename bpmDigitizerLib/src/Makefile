@@ -36,6 +36,9 @@ vmeDigiComm_SRCS   = vmeDigiComm.c $(vmeDigi_SRCS)
 
 DBD                = vmeDigiApp.dbd
 DBD               += vmeDigiSupport.dbd
+ifdef UDPCOMM
+DBD				  += vmeDigiSim.dbd
+endif
 vmeDigiDevSupMod_SRCS = vmeDigiSupport_registerRecordDeviceDriver.cpp
 vmeDigiDevSupMod_SRCS+= $(vmeDigiDevSup_SRCS)
 
