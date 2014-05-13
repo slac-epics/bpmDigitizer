@@ -60,6 +60,13 @@ INC += vmeDigi.h vmeDigiComm.h vme64x.h
 
 DB              += vmeDigiApp.db
 DB              += vmeDigiSim.db
+
+# Install archive templates
+ARCHIVE         += vmeDigiApp.tpl-arch
+
+# Install autosave templates
+REQ             += vmeDigiApp.tpl-req
+
 #===========================
 
 include $(TOP)/configure/RULES

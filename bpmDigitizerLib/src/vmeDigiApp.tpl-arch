@@ -1,0 +1,16 @@
+# BPM Digitizer archive template
+$(digi):PGA				30		monitor
+$(digi):PROP				30		monitor
+$(digi):REV				30		monitor
+$(digi):SLOT				30		monitor
+$(digi):SerialNumber		30		monitor
+$(digi):DWG				30		monitor
+$(digi):WAV				10
+$(digi):WAV.TSE			10		monitor
+$(digi):WAV.EVNT			10		monitor
+$(digi):CLK				30		monitor
+$(digi):ARM				10
+$(digi):ASTA				10
+$(digi):ISTAHW			10
+$(digi):ISTA				10
+$(digi):ISTARST			10

@@ -1,0 +1,6 @@
+# BPM Digitizer autosave list
+$(digi):ARM
+$(digi):CLK
+$(digi):PGA
+$(digi):WAV.TSE
+$(digi):WAV.EVNT
