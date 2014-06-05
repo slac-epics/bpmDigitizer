@@ -5,6 +5,8 @@ record(waveform, "$(digi):WAV")
 	field(DESC, "Raw VMEDIGI Data")
 	field(DTYP, "VMEDigi-Waveform")
 	field(INP, "#C$(card)S0@")
+	field(TSE,  "-1" )
+	field(EVNT, "140" )
 # NELM must be a multiple of 4 (# of digitizer channels)
 	field(NELM, "$(nelm)")
 	field(FTVL, "SHORT")
@@ -12,7 +14,6 @@ record(waveform, "$(digi):WAV")
 	field(HOPR, "32768")
 	field(LOPR, "-32767")
 	field(SCAN, "Passive")
-#	field(FLNK, "$(digi):ASTA")
 	field(FLNK, "$(digi):WAV_Fanout PP")
 }
 
@@ -20,8 +21,40 @@ record( fanout, $(digi):WAV_Fanout )
 {
 	field(LNK1, "$(digi):WAV1 PP")
 	field(LNK2, "$(digi):WAV2 PP")
+	field(LNK3, "$(digi):WAV:Count PP" )
+	field(LNK4, "$(LNK4=)" )
 	field(FLNK, "$(digi):ASTA PP")
 }
+
+record( calc, "$(digi):WAV:Count" )
+{
+	field( DESC, "Digitizer Capture Counter" )
+	field( INPA, "$(digi):WAV:Count" )
+	field( CALC, "A+1" )
+	field( EGU,  "samples" )
+	field( PREC, "0" )
+}
+
+record( calc, "$(digi):WAV:Rate" )
+{
+	field( DESC, "Digitizer capture rate" )
+	field( SCAN, "1 second" )
+	field( INPA, "$(digi):WAV:Count NPP MS" )
+	field( INPB, "$(digi):WAV:Rate.LA" )
+    field( INPC, "0.4" )
+	field( CALC, "VAL*C+(A-B)*(1-C)" )
+	field( LOLO, "$(LOLO=9)" )
+	field( LOW,  "$(LOW=119)" )
+	field( HIGH, "$(HIGH=121)" )
+	field( HIHI, "$(HIHI=361)" )
+	field( LSV,  "$(LSV=MINOR)" )
+	field( LLSV, "$(LLSV=MAJOR)" )
+	field( HSV,  "$(HSV=MINOR)" )
+	field( HHSV, "$(HHSV=MAJOR)" )
+	field( EGU,  "samp/sec" )
+	field( PREC, "1" )
+}
+
 
 record(subArray, "$(digi):WAV1")
 {
@@ -124,7 +157,7 @@ record(mbbo, "$(digi):ARM")
 	field(PINI, "YES")
 }
 
-record(longin, "$(digi):S_N")
+record(longin, "$(digi):SerialNumber")
 {
 	field(DESC, "VMEDIGI Serial Number")
 	field(DTYP, "BusAddress")
