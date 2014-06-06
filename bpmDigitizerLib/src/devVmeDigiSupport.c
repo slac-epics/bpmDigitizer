@@ -14,6 +14,10 @@
 #include <vmeDigi.h>
 
 #include <devVmeDigiSupport.h>
+#define	TRACK_HI_RES_DUR	1
+#ifdef	TRACK_HI_RES_DUR
+#include "HiResTime.h"
+#endif	/*	TRACK_HI_RES_DUR	*/
 
 VmeDigiCard devVmeDigis[MAX_DIGIS] = { {0} };
 
@@ -61,6 +65,14 @@ static DevBusMappedAccessRec vmeDigiRdCR32 = {
 	0
 };
 
+#ifdef	TRACK_HI_RES_DUR
+t_HiResTime		hiResTickDigiIsrPrior	= 0LL;
+t_HiResTime		hiResDurDigiIsrMin		= 1000000LL;
+t_HiResTime		hiResDurDigiIsrMax		= 0LL;
+unsigned int	nTicksHiResDurLate		= 333100;
+unsigned int	nLateDigiIsr			= 0;
+
+#endif	/*	TRACK_HI_RES_DUR	*/
 static void
 devVmeDigiIsr(void *arg)
 {
@@ -77,6 +89,19 @@ unsigned p;
 #endif
 
 	if ( devVmeDigis[idx].prec ) {
+#ifdef	TRACK_HI_RES_DUR
+		t_HiResTime		hiResTickDigiIsr = GetHiResTicks();
+		t_HiResTime		hiResDur = hiResTickDigiIsr - hiResTickDigiIsrPrior;
+		if( hiResDurDigiIsrMax	< hiResDur )
+			hiResDurDigiIsrMax	= hiResDur;
+		if( hiResDurDigiIsrMin	> hiResDur )
+			hiResDurDigiIsrMin	= hiResDur;
+		hiResTickDigiIsrPrior	=  hiResTickDigiIsr;
+		/* Count the number of ISR intervals over 10ms */
+		if ( hiResDur > nTicksHiResDurLate )
+			nLateDigiIsr++;
+
+#endif	/*	TRACK_HI_RES_DUR	*/
 		callbackRequestProcessCallback(
 			& devVmeDigis[idx].cb,
 			priorityHigh, 

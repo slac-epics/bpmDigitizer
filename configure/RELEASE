@@ -11,8 +11,9 @@ EPICS_BASE=$(EPICS_SITE_TOP)/base/$(BASE_MODULE_VERSION)
 # ===============================================================
 # Define the version(s) of any other needed modules 
 # ===============================================================
-DEVBUSMAPPED_MODULE_VERSION=R2.0.0-1.2.0
-UDPCOMM_MODULE_VERSION=R2.4.2-0.1.0
+DEVBUSMAPPED_MODULE_VERSION	= R2.0.0-1.2.0
+DIAGTIMER_MODULE_VERSION	= R1.5.0
+UDPCOMM_MODULE_VERSION		= R2.4.2-0.1.0
 
 # ============================================================
 # External Support module path definitions
@@ -28,5 +29,6 @@ UDPCOMM_MODULE_VERSION=R2.4.2-0.1.0
 # If your build fails, look for these paths in your build output
 # ============================================================
 DEVBUSMAPPED=$(EPICS_MODULES)/devBusMapped/$(DEVBUSMAPPED_MODULE_VERSION)
+DIAGTIMER=$(EPICS_MODULES)/diagTimer/$(DIAGTIMER_MODULE_VERSION)
 # Only needed for PAD network communications
 #UDPCOMM=$(EPICS_MODULES)/udpComm/$(UDPCOMM_MODULE_VERSION)

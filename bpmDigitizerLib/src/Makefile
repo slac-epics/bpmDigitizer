@@ -45,12 +45,14 @@ vmeDigiDevSupMod_SRCS+= $(vmeDigiDevSup_SRCS)
 vmeDigiApp_DBD   = base.dbd
 vmeDigiApp_DBD  += vmeDigiWf.dbd
 vmeDigiApp_DBD  += devBusMapped.dbd
+vmeDigiApp_DBD	+= diagTimer.dbd
 
 vmeDigiApp_SRCS  = vmeDigiApp_registerRecordDeviceDriver.cpp
 
 vmeDigiApp_LIBS += vmeDigiDevSup
 vmeDigiApp_LIBS += vmeDigi
 vmeDigiApp_LIBS += devBusMapped
+vmeDigiApp_LIBS += diagTimer
 
 vmeDigiApp_LIBS += $(EPICS_BASE_IOC_LIBS)
 
