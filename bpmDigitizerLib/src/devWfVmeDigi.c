@@ -97,7 +97,7 @@ static void init(int phase)
 		devWfVmeDigiQ = epicsMessageQueueCreate( MAX_DIGIS, sizeof(VmeDigiCard *) );
 		devWfVmeDigiT = epicsThreadCreate(
 							"devWfVmeDigiT",
-							epicsThreadPriorityLow, 
+							epicsThreadPriorityHigh, 
 							epicsThreadGetStackSize(epicsThreadStackMedium),
 							devWfVmeDigiTsk,
 							0);
@@ -129,7 +129,6 @@ int          idx;
 		goto bail;
 	}
 
-
 	dpvt->orarm = prec->rarm;
 	/* convenience pointer back to card struct */
 	dpvt->card = &devVmeDigis[idx-1];
@@ -137,6 +136,7 @@ int          idx;
 	prec->dpvt = dpvt;
 
 	if ( dpvt->orarm ) { 
+		/* Initial arming of digitizer from init_record() */
 		if ( dpvt->orarm < 0 )
 			vmeDigiSWTrig( dpvt->card->digi );
 		else
@@ -153,7 +153,6 @@ bail:
 }
 
 #ifdef	TRACK_HI_RES_DUR
-
 extern t_HiResTime		hiResTickDigiIsrPrior;
 extern t_HiResTime		hiResDurDigiIsrMin;
 extern t_HiResTime		hiResDurDigiIsrMax;
@@ -246,6 +245,7 @@ int ShowHiResDurDigiWave( unsigned int fReset )
 	return 0;
 }
 #endif	/*	TRACK_HI_RES_DUR	*/
+
 static long read_waveform(struct waveformRecord *prec)
 {
 VmeDigiDPVT *dpvt     = prec->dpvt;
@@ -281,8 +281,8 @@ int          nord     = prec->nord;
 			hiResDurDigiIsrToWave2Max = hiResDur;
 		if( hiResDurDigiIsrToWave2Min > hiResDur )
 			hiResDurDigiIsrToWave2Min = hiResDur;
-
 #endif	/*	TRACK_HI_RES_DUR	*/
+
 		/* phase 2 completion */
 		prec->udf = FALSE;
 
@@ -299,11 +299,12 @@ int          nord     = prec->nord;
 		nord = prec->nelm;
 
 	} else {
-#if 0
-		if ( vmeDigiIrqAck( card->digi ) )
-#else
+		/* The ISR routine, devVmeDigiIsr(), sets pending if
+		 * the interrupt was from the digi.
+		 * It also posts a callback request to the EPICS record
+		 * processing queue, which in turn calls this function.
+		 */
 		if ( card->pending )
-#endif
 		{
 #ifdef	TRACK_HI_RES_DUR
 			t_HiResTime		hiResTickDigiWave1 = GetHiResTicks();
@@ -325,15 +326,19 @@ int          nord     = prec->nord;
 				hiResDurDigiIsrToWave1Max = hiResDur;
 			if( hiResDurDigiIsrToWave1Min > hiResDur )
 				hiResDurDigiIsrToWave1Min = hiResDur;
-
 #endif	/*	TRACK_HI_RES_DUR	*/
+
 			/* phase 1 of async. processing  */
 			prec->pact = TRUE;
 
 			card->pending = 0;
-			/* post request to task */
-			epicsMessageQueueSend( devWfVmeDigiQ, &card, sizeof(card));
 
+			/* post request to task
+			 * request gets handled by our digi thread devWfVmeDigiTsk()
+			 * which in turn calls this process function for the async completion,
+			 * re-arming, timestamps, and event posting.
+			 */
+			epicsMessageQueueSend( devWfVmeDigiQ, &card, sizeof(card));
 			return 0;
 		}
 	}
@@ -346,6 +351,10 @@ int          nord     = prec->nord;
 	}
 
 	if ( needsArm ) {
+		/*
+		 * Here's where we arm the digi for the next acquisition
+		 * If this happens late we'll miss a capture!
+		 */
 #ifdef	TRACK_HI_RES_DUR
 		t_HiResTime		hiResTickDigiReArm = GetHiResTicks();
 		t_HiResTime		hiResDur = hiResTickDigiReArm - hiResTickDigiReArmPrior;
@@ -368,7 +377,7 @@ int          nord     = prec->nord;
 			nLateDigiReArm++;
 
 #endif	/*	TRACK_HI_RES_DUR	*/
-		if ( needsArm < 0 )
+	if ( needsArm < 0 )
 			vmeDigiSWTrig( card->digi );
 		else
 			vmeDigiArm( card->digi );
