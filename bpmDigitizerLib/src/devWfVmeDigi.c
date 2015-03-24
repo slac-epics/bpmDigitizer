@@ -22,7 +22,61 @@
 #include "HiResTime.h"
 #endif	/*	TRACK_HI_RES_DUR	*/
 
+/* #define	TIMESTAMP_VIA_EVR_FIFO */
+#ifdef	TIMESTAMP_VIA_EVR_FIFO
+unsigned int	fTIMESTAMP_VIA_EVR_FIFO	= 1;
+/*
+ * This code supports getting timestamps from the event
+ * timestamp FIFO in the SLAC event module
+ */
+#include <epicsTime.h>
+#include "evrTime.h"
+
+/*
+ * At SLAC, the least sig 17 bits from the ns field of the
+ * timestamp contain a fiducial number which identifies each beam pulse.
+ * Getting these timestamps from the event FIFO protects against
+ * the occasional errors we see in the record timestamps due to the
+ * record processing not being complete before the next interrupt.
+ *
+ * I have concerns about what exactly is happening in these error cases,
+ * because the data is copied directly from the card just before the
+ * timestamp is grabbed, so if the timestamp is a duplicate, perhaps the
+ * data is as well!  However, the timestamp is updated as soon as the event code
+ * arrives, and our phase cavity system uses a 0.89ms delay before triggering the
+ * digitizer, so we do have some margin here.
+ *
+ * Using the FIFO requires an initial call to fetch an index number,
+ * which is a monotonically incrementing counter used by the FIFO code
+ * to provide the right timestamp.
+ *
+ * To guard against getting out of sync with the FIFO,
+ * the fiducial from each timestamp we fetch from the FIFO is compared
+ * against the fiducial from the most recent timestamp
+ * for that same event code, obtained via evrTimeGet().
+ *
+ * Note: evrTimeGet() is the routine that gets called if we set
+ * the TSE field of the waveform record to the event code.
+ * This code will only be used if TSE is set to -2 and
+ * the event code is provided by the EVNT field.
+ *
+ * If the fiducials differ by more
+ * than the specified fiducial tolerance, we increment the
+ * unsynced count.   When that count exceeds it's tolerance, we fetch a
+ * fresh index from the EVR FIFO and reset the count.
+ */
+#define FIFO_DEF_FIDUCIAL_TOL	1
+#define FIFO_DEF_UNSYNCED_TOL	3
+
+unsigned int	debug_ts_fifo	= 0;
+
+#endif	/*	TIMESTAMP_VIA_EVR_FIFO	*/
+
 typedef struct VmeDigiDPVT_ {
+#ifdef	TIMESTAMP_VIA_EVR_FIFO
+	unsigned long long		fifoIndex;
+	unsigned long			unSyncedCount;
+#endif	/*	TIMESTAMP_VIA_EVR_FIFO	*/
 	int						orarm;
 	struct VmeDigiCard_	*	card;
 } VmeDigiDPVT;
@@ -129,6 +183,11 @@ int          idx;
 		goto bail;
 	}
 
+
+#ifdef	TIMESTAMP_VIA_EVR_FIFO
+	dpvt->fifoIndex		= 0LL;
+	dpvt->unSyncedCount	= FIFO_DEF_UNSYNCED_TOL;
+#endif	/*	TIMESTAMP_VIA_EVR_FIFO	*/
 	dpvt->orarm = prec->rarm;
 	/* convenience pointer back to card struct */
 	dpvt->card = &devVmeDigis[idx-1];
@@ -195,11 +254,10 @@ int ShowHiResDurDigiWave( unsigned int fReset )
 	printf( "DigiIsr:      HiResDurMin = %.6e, HiResDurMax = %.6e, %u late\n",
 			HiResTicksToSeconds( hiResDurDigiIsrMin ),
 			HiResTicksToSeconds( hiResDurDigiIsrMax ), nLateDigiIsr	);
-	printf( "DigiWave1:    Captured %d waveforms\n", nDigiWave1 );
-	printf( "DigiWave1:    HiResDurMin = %.6e, HiResDurMax = %.6e, %u more than 10ms\n",
+	printf( "DigiWave1:    HiResDurMin = %.6e, HiResDurMax = %.6e, %u late\n",
 			HiResTicksToSeconds( hiResDurDigiWave1Min ),
 			HiResTicksToSeconds( hiResDurDigiWave1Max ), nLateDigiWave1	);
-	printf( "DigiWave2:    HiResDurMin = %.6e, HiResDurMax = %.6e, %u more than 10ms\n",
+	printf( "DigiWave2:    HiResDurMin = %.6e, HiResDurMax = %.6e, %u late\n",
 			HiResTicksToSeconds( hiResDurDigiWave2Min ),
 			HiResTicksToSeconds( hiResDurDigiWave2Max ), nLateDigiWave2	);
 	printf( "Wave1ToWave2: HiResDurMin = %.6e, HiResDurMax = %.6e\n",
@@ -333,6 +391,60 @@ int          nord     = prec->nord;
 
 			card->pending = 0;
 
+#ifdef	TIMESTAMP_VIA_EVR_FIFO
+			if ( prec->tse == epicsTimeEventDeviceTime && prec->evnt > 0 )
+			{	//	updateTimeStamp( prec )
+				if ( !fTIMESTAMP_VIA_EVR_FIFO )
+				{
+					evrTimeGet( &prec->time, prec->evnt );
+				}
+				else
+				{
+					epicsTimeStamp		tsFifo;
+					epicsTimeStamp		tsCur;
+					int					fifoStatus;
+					int					curStatus;
+
+					fifoStatus	= evrTimeGetFifo( &tsFifo, prec->evnt, &dpvt->fifoIndex,
+												(dpvt->unSyncedCount < FIFO_DEF_UNSYNCED_TOL ? 1 : MAX_TS_QUEUE) );
+					curStatus	= evrTimeGet( &tsCur, prec->evnt );
+					if ( curStatus == epicsTimeOK )
+					{
+						epicsInt32		fidFifo	= PULSEID(tsFifo);
+						epicsInt32		fidCur	= PULSEID(tsCur);
+						if (	fifoStatus == epicsTimeOK
+							&&	( FID_DIFF(fidCur,fidFifo) < FIFO_DEF_FIDUCIAL_TOL ) )
+						{
+							prec->time = tsFifo;
+							if ( debug_ts_fifo >= 2 && dpvt->unSyncedCount > 0 )
+								printf( "BPM Digitizer resynced with EVR!, fidCur =0x%05X\n", fidFifo );
+							dpvt->unSyncedCount = 0;
+						}
+						else
+						{
+							prec->time = tsCur;
+							if( dpvt->unSyncedCount < 0x7FFFFFFF )
+							{
+								dpvt->unSyncedCount++;
+								if( dpvt->unSyncedCount == FIFO_DEF_UNSYNCED_TOL )
+									errlogPrintf( "BPM Digitizer lost EVR sync!, fidCur=0x%05X, diff=%d, status=%d\n",
+											fidCur, FID_DIFF(fidCur,fidFifo), fifoStatus );
+								else if ( debug_ts_fifo >= 2 )
+									printf( "BPM Digitizer fid 0x%05X, diff = %d, unSyncedCount = %ld\n",
+											fidCur, FID_DIFF(fidCur,fidFifo), dpvt->unSyncedCount );
+							}
+						}
+					}
+					else
+					{
+						errlogPrintf(	"bpmDigitizer %s: evrTimeGet failed!\n", prec->name );
+						errlogPrintf(	"fifoStatus=0x%X, curStatus=0x%X, evnt=%d\n",
+										fifoStatus, curStatus, prec->evnt );
+					}
+				}
+			}
+#endif	/*	TIMESTAMP_VIA_EVR_FIFO	*/
+
 			/* post request to task
 			 * request gets handled by our digi thread devWfVmeDigiTsk()
 			 * which in turn calls this process function for the async completion,
@@ -375,7 +487,6 @@ int          nord     = prec->nord;
 		nTicksHiResReArmLate = (HiResTicksPerSecond() / 120);
 		if ( hiResDur > nTicksHiResReArmLate )
 			nLateDigiReArm++;
-
 #endif	/*	TRACK_HI_RES_DUR	*/
 	if ( needsArm < 0 )
 			vmeDigiSWTrig( card->digi );

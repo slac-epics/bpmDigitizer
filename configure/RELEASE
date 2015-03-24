@@ -12,8 +12,11 @@ EPICS_BASE=$(EPICS_SITE_TOP)/base/$(BASE_MODULE_VERSION)
 # Define the version(s) of any other needed modules 
 # ===============================================================
 DEVBUSMAPPED_MODULE_VERSION	= R2.0.0-1.2.0
-DIAGTIMER_MODULE_VERSION	= R1.5.0
-UDPCOMM_MODULE_VERSION		= R2.4.2-0.1.0
+# TODO: Figure out why devBusMapped R3.1.0-0.1.0 crashes us!
+#DEVBUSMAPPED_MODULE_VERSION	= R3.1.0-0.1.0
+DIAGTIMER_MODULE_VERSION	= R1.6.0
+EVENT_MODULE_VERSION		= R4.0.0-2.8.0
+UDPCOMM_MODULE_VERSION		= R2.4.2-0.2.0
 
 # ============================================================
 # External Support module path definitions
@@ -30,5 +33,10 @@ UDPCOMM_MODULE_VERSION		= R2.4.2-0.1.0
 # ============================================================
 DEVBUSMAPPED=$(EPICS_MODULES)/devBusMapped/$(DEVBUSMAPPED_MODULE_VERSION)
 DIAGTIMER=$(EPICS_MODULES)/diagTimer/$(DIAGTIMER_MODULE_VERSION)
+EVENT=$(EPICS_MODULES)/event/$(EVENT_MODULE_VERSION)
 # Only needed for PAD network communications
 #UDPCOMM=$(EPICS_MODULES)/udpComm/$(UDPCOMM_MODULE_VERSION)
+
+# For development only
+#MY_MODULES=~bhill/wa2/trunk/pcds/epics/modules
+#EVENT=$(MY_MODULES)/event/current
