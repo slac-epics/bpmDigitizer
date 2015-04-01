@@ -22,7 +22,7 @@
 #include "HiResTime.h"
 #endif	/*	TRACK_HI_RES_DUR	*/
 
-/* #define	TIMESTAMP_VIA_EVR_FIFO */
+#define	TIMESTAMP_VIA_EVR_FIFO
 #ifdef	TIMESTAMP_VIA_EVR_FIFO
 unsigned int	fTIMESTAMP_VIA_EVR_FIFO	= 1;
 /*
@@ -251,6 +251,7 @@ int ShowHiResDurDigiWave( unsigned int fReset )
 		return 0;
 	}
 
+	printf( "Captured %d waveforms\n", nDigiWave1 );
 	printf( "DigiIsr:      HiResDurMin = %.6e, HiResDurMax = %.6e, %u late\n",
 			HiResTicksToSeconds( hiResDurDigiIsrMin ),
 			HiResTicksToSeconds( hiResDurDigiIsrMax ), nLateDigiIsr	);
