@@ -15,7 +15,7 @@ DEVBUSMAPPED_MODULE_VERSION	= R2.0.0-1.2.0
 # TODO: Figure out why devBusMapped R3.1.0-0.1.0 crashes us!
 #DEVBUSMAPPED_MODULE_VERSION	= R3.1.0-0.1.0
 DIAGTIMER_MODULE_VERSION	= R1.6.0
-EVENT_MODULE_VERSION		= R4.0.0-2.8.0
+EVENT_MODULE_VERSION		= R4.0.0-2.9.0
 UDPCOMM_MODULE_VERSION		= R2.4.2-0.2.0
 
 # ============================================================
