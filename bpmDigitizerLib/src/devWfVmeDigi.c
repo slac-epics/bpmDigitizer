@@ -392,7 +392,13 @@ int          nord     = prec->nord;
 
 			card->pending = 0;
 
-#ifdef	TIMESTAMP_VIA_EVR_FIFO
+			/* TODO: Add check for dup fiducials! */
+#ifndef	TIMESTAMP_VIA_EVR_FIFO
+			if ( prec->tse == epicsTimeEventDeviceTime && prec->evnt > 0 )
+			{	//	updateTimeStamp( prec )
+				evrTimeGet( &prec->time, prec->evnt );
+			}
+#else
 			if ( prec->tse == epicsTimeEventDeviceTime && prec->evnt > 0 )
 			{	//	updateTimeStamp( prec )
 				if ( !fTIMESTAMP_VIA_EVR_FIFO )

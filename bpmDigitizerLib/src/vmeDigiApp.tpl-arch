@@ -5,7 +5,7 @@ $(digi):REV				30		monitor
 $(digi):SLOT				30		monitor
 $(digi):SerialNumber		30		monitor
 $(digi):DWG				30		monitor
-$(digi):WAV				10
+$(digi):WAV				60
 $(digi):WAV.TSE			10		monitor
 $(digi):WAV.EVNT			10		monitor
 $(digi):CLK				30		monitor
