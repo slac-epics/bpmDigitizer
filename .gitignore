@@ -1,0 +1,8 @@
+archive
+autosave
+bin
+db
+dbd
+include
+O.*
+*>log
