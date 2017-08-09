@@ -19,8 +19,6 @@ record(waveform, "$(digi):WAV")
 
 record( fanout, $(digi):WAV_Fanout )
 {
-	field(LNK1, "$(digi):WAV1 PP")
-	field(LNK2, "$(digi):WAV2 PP")
 	field(LNK3, "$(digi):WAV:Count PP" )
 	field(LNK4, "$(LNK4=)" )
 	field(FLNK, "$(digi):ASTA PP")
@@ -64,6 +62,7 @@ record(subArray, "$(digi):WAV1")
 	field(MALM, "$(nelm)" )
 	field(NELM, "$(nelm)" )
 	field(INDX, "0" )
+	field(SCAN, "0.2 second")
 }
 
 record(subArray, "$(digi):WAV2")
@@ -74,6 +73,7 @@ record(subArray, "$(digi):WAV2")
 	field(MALM, "$(nelm)" )
 	field(NELM, "$(nelm)" )
 	field(INDX, "0" )
+	field(SCAN, "0.2 second")
 }
 
 record(bo, "$(digi):PGA")
