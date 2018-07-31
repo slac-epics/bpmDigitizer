@@ -62,7 +62,8 @@ record(subArray, "$(digi):WAV1")
 	field(MALM, "$(nelm)" )
 	field(NELM, "$(nelm)" )
 	field(INDX, "0" )
-	field(SCAN, "0.2 second")
+	field(SCAN, ".1 second")
+	info( autosaveFields, "SCAN" )
 }
 
 record(subArray, "$(digi):WAV2")
@@ -73,7 +74,8 @@ record(subArray, "$(digi):WAV2")
 	field(MALM, "$(nelm)" )
 	field(NELM, "$(nelm)" )
 	field(INDX, "0" )
-	field(SCAN, "0.2 second")
+	field(SCAN, ".1 second")
+	info( autosaveFields, "SCAN" )
 }
 
 record(bo, "$(digi):PGA")
