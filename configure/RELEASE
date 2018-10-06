@@ -1,42 +1,17 @@
 # RELEASE
 # Defines location of external products
-include $(TOP)/RELEASE_SITE
+# Run "gnumake clean uninstall install" in the application
+# top directory each time this file is changed.
+-include $(TOP)/configure/RELEASE.local
 
-# ===============================================================
-# Define the location and version of EPICS base
-# ===============================================================
-BASE_MODULE_VERSION=R3.14.12-0.4.0
-EPICS_BASE=$(EPICS_SITE_TOP)/base/$(BASE_MODULE_VERSION)
+# Check for valid macro definitions for module release directories
+# You can add tests here to make sure RELEASE.local defined valid
+# macros for all the module dependencies
+ifeq ($(wildcard $(EPICS_BASE)/include),)
+$(error Invalid EPICS_BASE: $(EPICS_BASE))
+endif
+ifeq ($(wildcard $(EVENT)/include),)
+$(error Invalid EVENT: $(EVENT))
+endif
+#...
 
-# ===============================================================
-# Define the version(s) of any other needed modules 
-# ===============================================================
-DEVBUSMAPPED_MODULE_VERSION	= R2.0.0-1.2.0
-# TODO: Figure out why devBusMapped R3.1.0-0.1.0 crashes us!
-#DEVBUSMAPPED_MODULE_VERSION	= R3.1.0-0.1.0
-DIAGTIMER_MODULE_VERSION	= R1.6.0
-EVENT_MODULE_VERSION		= R4.0.0-2.9.0
-UDPCOMM_MODULE_VERSION		= R2.4.2-0.2.0
-
-# ============================================================
-# External Support module path definitions
-#
-# If any of these macros expand to a path which
-# contains an "include" directory, that directory will be
-# included in the compiler include path.
-#
-# If any of these macros expand to a path which
-# contains a "lib/<arch>" directory, that directory will be
-# included in the compiler link path for that architecture.
-#
-# If your build fails, look for these paths in your build output
-# ============================================================
-DEVBUSMAPPED=$(EPICS_MODULES)/devBusMapped/$(DEVBUSMAPPED_MODULE_VERSION)
-DIAGTIMER=$(EPICS_MODULES)/diagTimer/$(DIAGTIMER_MODULE_VERSION)
-EVENT=$(EPICS_MODULES)/event/$(EVENT_MODULE_VERSION)
-# Only needed for PAD network communications
-#UDPCOMM=$(EPICS_MODULES)/udpComm/$(UDPCOMM_MODULE_VERSION)
-
-# For development only
-#MY_MODULES=~bhill/wa2/trunk/pcds/epics/modules
-#EVENT=$(MY_MODULES)/event/current

@@ -1,0 +1,51 @@
+# RELEASE.local
+#
+# Read definitions of:
+#	EPICS_SITE_TOP
+#	BASE_MODULE_VERSION
+#	EPICS_MODULES 
+# from one of the following options
+-include $(TOP)/../../RELEASE_SITE
+-include $(TOP)/RELEASE_SITE
+
+# Check that EPICS_MODULES was defined in a RELEASE_SITE file
+-include $(TOP)/../../RELEASE_SITE.check
+
+# ===============================================================
+# Define the version(s) of any other needed modules 
+# ===============================================================
+DEVBUSMAPPED_MODULE_VERSION	= R3.2.2
+# TODO: Figure out why devBusMapped R3.1.0-0.1.0 crashes us!
+#DEVBUSMAPPED_MODULE_VERSION	= R3.1.0-0.1.0
+DIAGTIMER_MODULE_VERSION	= R1.9.2
+EVENT_MODULE_VERSION		= R4.0.0-3.0.0
+#UDPCOMM_MODULE_VERSION		= R2.4.2-0.2.0
+
+# ============================================================
+# External Support module path definitions
+#
+# If any of these macros expand to a path which
+# contains an "include" directory, that directory will be
+# included in the compiler include path.
+#
+# If any of these macros expand to a path which
+# contains a "lib/<arch>" directory, that directory will be
+# included in the compiler link path for that architecture.
+#
+# If your build fails, look for these paths in your build output
+# ============================================================
+DEVBUSMAPPED=$(EPICS_MODULES)/devBusMapped/$(DEVBUSMAPPED_MODULE_VERSION)
+DIAGTIMER=$(EPICS_MODULES)/diagTimer/$(DIAGTIMER_MODULE_VERSION)
+EVENT=$(EPICS_MODULES)/event/$(EVENT_MODULE_VERSION)
+# Only needed for PAD network communications
+#UDPCOMM=$(EPICS_MODULES)/udpComm/$(UDPCOMM_MODULE_VERSION)
+
+# Set EPICS_BASE last so it appears last in the DB, DBD, INCLUDE, and LIB search paths
+EPICS_BASE = $(EPICS_SITE_TOP)/base/$(BASE_MODULE_VERSION)
+
+# Check for invalid or undefined EPICS_BASE
+-include $(TOP)/../../EPICS_BASE.check
+
+# For development only
+#MY_MODULES=~bhill/wa2/trunk/pcds/epics/modules
+#EVENT=$(MY_MODULES)/event/current
