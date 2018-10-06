@@ -1,0 +1,14 @@
+
+R9.1.1-0.9.0	2018-07-31 Bruce Hill
+	Fixed typo in WAV1 and WAV2 SCAN field and added SCAN to autosaveFields
+	Module versions: devBusMapped/R2.0.0-1.2.0 diagTimer/R1.6.0 event/R4.0.0-2.9.0
+
+R9.1.1-0.8.0	2017-08-08 Bruce Hill
+	Changed WAV1 and WAV2 to update at 5hz instead of full 120hz
+
+R9.1.1-0.7.0	2016-03-09 Bruce Hill
+	Changed WAV archiver sample period from 10sec to 60sec and added flag variable for timestamping selection
+
+R9.1.1-0.6.0	2015-04-01 Bruce Hill
+	Enabled timestamping via EVR FIFO
+	Bumped up event to R9.1.1-0.6.0
